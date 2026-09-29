@@ -1,0 +1,24 @@
+<div class="min-h-screen p-8">
+    <tinn-page-header [title]="'Front-Desk Dashboard'" [subtitle]="'Manage your hotel bookings and check-in/check-out'" [icon]="'dashboard'"> </tinn-page-header>
+
+    <!-- Action Cards Grid -->
+    <div class="grid grid-cols-4 gap-4 mt-8">
+        @for (card of actionCards; track card.route) {
+            <a [routerLink]="card.route" class="block bg-neutral-100 border border-neutral-200 rounded-xs p-4 shadow-md hover:shadow-xl transition-shadow cursor-pointer">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-10 h-10 rounded-xs bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <mat-icon class="text-default-font">{{ card.icon }}</mat-icon>
+                    </div>
+
+                    <h3 class="font-semibold text-default-font text-base flex-1">{{ card.title }}</h3>
+                </div>
+
+                <div class="flex justify-end">
+                    <div class="w-8 h-8 rounded-xs bg-brand-500 flex items-center justify-center">
+                        <mat-icon class="text-white text-sm">chevron_right</mat-icon>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+</div>

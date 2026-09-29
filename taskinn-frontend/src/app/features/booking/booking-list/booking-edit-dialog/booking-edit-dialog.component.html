@@ -1,0 +1,221 @@
+<div class="bg-white rounded-xl shadow-lg overflow-hidden max-w-4xl">
+    <!-- Header -->
+    <div class="bg-brand-primary h-14 flex items-center px-6 gap-3">
+        <mat-icon class="text-white">edit</mat-icon>
+        <h2 class="text-white text-xl font-semibold">Edit Booking</h2>
+    </div>
+
+    <!-- Form Content -->
+    <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()">
+        <div class="flex flex-col gap-6 p-6 overflow-y-auto max-h-[70vh]">
+            <!-- Booking Dates Section -->
+            <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-blue-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                        <mat-icon class="text-blue-600!">calendar_today</mat-icon>
+                    </div>
+                    <div class="text-default-font text-xl">Booking Dates</div>
+                </div>
+                <div class="flex items-start gap-10 px-4 pb-4">
+                    <div class="flex-1">
+                        <label class="form-field-label">Check-In Date</label>
+                        <input type="date" class="form-field bg-neutral-100!" formControlName="checkInDate" [min]="minCheckInDate.toISOString().split('T')[0]" (change)="onDateChange()" />
+                        @if (bookingForm.get('checkInDate')?.hasError('required') && bookingForm.get('checkInDate')?.touched) {
+                            <span class="form-field-error">Check-in date is required</span>
+                        }
+                    </div>
+                    <div class="flex-1">
+                        <label class="form-field-label">Check-Out Date</label>
+                        <input type="date" class="form-field bg-neutral-100!" formControlName="checkOutDate" [min]="minCheckOutDate.toISOString().split('T')[0]" (change)="onDateChange()" />
+                        @if (bookingForm.get('checkOutDate')?.hasError('required') && bookingForm.get('checkOutDate')?.touched) {
+                            <span class="form-field-error">Check-out date is required</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest Information Section -->
+            <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-green-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                        <mat-icon class="text-green-600!">person</mat-icon>
+                    </div>
+                    <div class="text-default-font text-xl">Guest Information</div>
+                </div>
+                <div class="flex flex-col gap-4 px-4 pb-4">
+                    <div class="flex items-start gap-10">
+                        <div class="flex-1">
+                            <label class="form-field-label">First Name</label>
+                            <input class="form-field bg-neutral-100!" formControlName="firstName" placeholder="Enter first name" />
+                            @if (bookingForm.get('firstName')?.hasError('required') && bookingForm.get('firstName')?.touched) {
+                                <span class="form-field-error">First name is required</span>
+                            }
+                        </div>
+                        <div class="flex-1">
+                            <label class="form-field-label">Last Name</label>
+                            <input class="form-field bg-neutral-100!" formControlName="lastName" placeholder="Enter last name" />
+                            @if (bookingForm.get('lastName')?.hasError('required') && bookingForm.get('lastName')?.touched) {
+                                <span class="form-field-error">Last name is required</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-10">
+                        <div class="flex-1">
+                            <label class="form-field-label">Date of Birth</label>
+                            <input type="date" class="form-field bg-neutral-100!" formControlName="dateOfBirth" />
+                            @if (bookingForm.get('dateOfBirth')?.hasError('required') && bookingForm.get('dateOfBirth')?.touched) {
+                                <span class="form-field-error">Date of birth is required</span>
+                            }
+                        </div>
+                        <div class="flex-1">
+                            <label class="form-field-label">Email</label>
+                            <input type="email" class="form-field bg-neutral-100!" formControlName="email" placeholder="guest@example.com" />
+                            @if (bookingForm.get('email')?.hasError('required') && bookingForm.get('email')?.touched) {
+                                <span class="form-field-error">Email is required</span>
+                            } @else if (bookingForm.get('email')?.hasError('email') && bookingForm.get('email')?.touched) {
+                                <span class="form-field-error">Please enter a valid email</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-10">
+                        <div class="flex-1">
+                            <label class="form-field-label">Phone Number</label>
+                            <input class="form-field bg-neutral-100!" formControlName="phone" placeholder="+43 123 456 789" />
+                        </div>
+                        <div class="flex-1">
+                            <!-- Empty space for alignment -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest Count Section -->
+            <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-purple-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                        <mat-icon class="text-purple-600!">groups</mat-icon>
+                    </div>
+                    <div class="text-default-font text-xl">Guest Count</div>
+                </div>
+                <div class="flex items-start gap-10 px-4 pb-4">
+                    <div class="flex-1">
+                        <label class="form-field-label">Number of Adults</label>
+                        <input type="number" class="form-field bg-neutral-100!" formControlName="numAdults" min="1" />
+                        @if (bookingForm.get('numAdults')?.hasError('required') && bookingForm.get('numAdults')?.touched) {
+                            <span class="form-field-error">Number of adults is required</span>
+                        } @else if (bookingForm.get('numAdults')?.hasError('min') && bookingForm.get('numAdults')?.touched) {
+                            <span class="form-field-error">At least 1 adult is required</span>
+                        }
+                    </div>
+                    <div class="flex-1">
+                        <label class="form-field-label">Number of Children</label>
+                        <input type="number" class="form-field bg-neutral-100!" formControlName="numChildren" min="0" />
+                        @if (bookingForm.get('numChildren')?.hasError('required') && bookingForm.get('numChildren')?.touched) {
+                            <span class="form-field-error">Number of children is required</span>
+                        } @else if (bookingForm.get('numChildren')?.hasError('min') && bookingForm.get('numChildren')?.touched) {
+                            <span class="form-field-error">Cannot be negative</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Services Section -->
+            <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-teal-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                        <mat-icon class="text-teal-600!">schedule</mat-icon>
+                    </div>
+                    <div class="text-default-font text-xl">Additional Services</div>
+                </div>
+                <div class="flex items-start gap-10 px-4 pb-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" formControlName="earlyCheckIn" class="w-5 h-5 text-brand-primary border-neutral-300 rounded focus:ring-brand-primary" />
+                        <label class="ml-2 text-default-font cursor-pointer">Early Check-in (+20.00€)</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" formControlName="lateCheckOut" class="w-5 h-5 text-brand-primary border-neutral-300 rounded focus:ring-brand-primary" />
+                        <label class="ml-2 text-default-font cursor-pointer">Late Check-out (+20.00€)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Selection Section -->
+            <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-orange-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                        <mat-icon class="text-orange-600!">hotel</mat-icon>
+                    </div>
+                    <div class="text-default-font text-xl">Room Selection</div>
+                </div>
+                <div class="px-4 pb-4">
+                    <div class="text-sm text-neutral-600 mb-3">Select rooms for this booking (showing available rooms for selected dates)</div>
+                    @if (selectedRoomIds().length > 0) {
+                        <div class="mb-3 p-3 rounded-lg bg-neutral-100 border border-neutral-300">
+                            <div class="text-brand-primary text-sm font-medium">{{ selectedRoomIds().length }} room(s) selected</div>
+                            <div class="text-sm mt-1" [class.text-green-600]="!hasInsufficientCapacity" [class.text-red-500]="hasInsufficientCapacity">
+                                <mat-icon class="text-xs align-middle" [class.text-green-600]="!hasInsufficientCapacity" [class.text-red-500]="hasInsufficientCapacity">
+                                    {{ hasInsufficientCapacity ? 'warning' : 'check_circle' }}
+                                </mat-icon>
+                                Total capacity: {{ totalCapacity }} / {{ totalGuests }} guests
+                            </div>
+                            @if (hasInsufficientCapacity) {
+                                <div class="text-red-500 text-sm mt-1 font-medium"> Warning: Not enough capacity for all guests! Please select more rooms. </div>
+                            }
+                        </div>
+                    }
+                    @if (availableRooms().length > 0) {
+                        <div class="flex flex-col gap-2">
+                            @for (room of availableRooms(); track room.id) {
+                                <div
+                                    class="flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all hover:bg-neutral-50"
+                                    [class.border-brand-primary]="isRoomSelected(room.id)"
+                                    [class.bg-brand-primary-light]="isRoomSelected(room.id)"
+                                    [class.border-neutral-300]="!isRoomSelected(room.id)"
+                                    (click)="toggleRoomSelection(room.id)">
+                                    <div class="flex items-center gap-3">
+                                        <mat-icon [class.text-brand-primary]="isRoomSelected(room.id)" [class.text-neutral-500]="!isRoomSelected(room.id)">
+                                            {{ isRoomSelected(room.id) ? 'check_circle' : 'radio_button_unchecked' }}
+                                        </mat-icon>
+                                        <div>
+                                            <span class="font-medium">Room {{ room.roomNumber }}</span>
+                                            <span class="text-neutral-600 text-sm ml-2">{{ room.roomTypeName }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1 text-sm text-neutral-600">
+                                        <mat-icon class="text-sm">person</mat-icon>
+                                        <span>{{ room.capacity }}</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    } @else {
+                        <div class="text-center py-8 text-neutral-500">
+                            <mat-icon class="text-4xl">info</mat-icon>
+                            <div class="mt-2">No rooms available for the selected dates</div>
+                        </div>
+                    }
+                    @if (selectedRoomIds().length === 0) {
+                        <div class="text-red-500 text-sm mt-2">Please select at least one room</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between gap-3 px-6 py-4 border-t border-neutral-200 bg-white">
+            <button type="button" class="brand-neutral-button" (click)="onCancel()" [disabled]="loading()">
+                <mat-icon>cancel</mat-icon>
+                Cancel
+            </button>
+            <button type="submit" [disabled]="loading() || !bookingForm.valid || selectedRoomIds().length === 0 || hasInsufficientCapacity" class="brand-primary-button">
+                @if (loading()) {
+                    <mat-icon class="animate-spin">refresh</mat-icon>
+                    Updating...
+                } @else {
+                    <mat-icon>save</mat-icon>
+                    Save Changes
+                }
+            </button>
+        </div>
+    </form>
+</div>

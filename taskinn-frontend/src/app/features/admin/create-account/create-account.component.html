@@ -1,0 +1,137 @@
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-xl">
+        <tinn-page-header [title]="'Create Staff Account'" [subtitle]="'Add a new team member to the staff'" [icon]="'person_add'"> </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+            <!-- Account Setup Header -->
+            <div class="bg-brand-primary h-14 rounded-t-lg flex items-center p-4 gap-3"> </div>
+
+            <!-- Form Container -->
+            <div class="flex flex-col m-4 gap-4">
+                <form [formGroup]="createAccountForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+                    <!-- Identity-->
+                    <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-8 bg-blue-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                                <mat-icon class="text-blue-600!">person</mat-icon>
+                            </div>
+                            <div class="text-default-font text-xl"> Identity </div>
+                        </div>
+                        <div class="flex items-start gap-10 px-4">
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">First Name<tinn-mandatory-mark /></label>
+                                <input class="form-field bg-neutral-100!" required formControlName="firstName" placeholder="Enter first name" />
+                                @if (createAccountForm.get('firstName')?.hasError('required') && createAccountForm.get('firstName')?.touched) {
+                                    <span class="form-field-error">First name is required</span>
+                                }
+                            </div>
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Last Name<tinn-mandatory-mark /></label>
+                                <input class="form-field bg-neutral-100!" required formControlName="lastName" placeholder="Enter last name" />
+                                @if (createAccountForm.get('lastName')?.hasError('required') && createAccountForm.get('lastName')?.touched) {
+                                    <span class="form-field-error">Last name is required</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Credentials -->
+                    <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-8 bg-red-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                                <mat-icon class="text-red-600!">lock</mat-icon>
+                            </div>
+                            <div class="text-default-font text-xl"> Login Credentials </div>
+                        </div>
+                        <div class="flex items-start gap-10 px-4">
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Email<tinn-mandatory-mark /></label>
+                                <input class="form-field bg-neutral-100!" required formControlName="email" placeholder="Enter company email" />
+                                @if (createAccountForm.get('email')?.hasError('required') && createAccountForm.get('email')?.touched) {
+                                    <span class="form-field-error">Email is required</span>
+                                } @else if (createAccountForm.get('email')?.hasError('email') && createAccountForm.get('email')?.touched) {
+                                    <span class="form-field-error">Please enter a valid email</span>
+                                }
+                            </div>
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Password<tinn-mandatory-mark /></label>
+                                <input class="form-field bg-neutral-100!" required formControlName="password" placeholder="Enter a password" />
+                                @if (createAccountForm.get('password')?.hasError('required') && createAccountForm.get('password')?.touched) {
+                                    <span class="form-field-error">Password is required</span>
+                                } @else if (createAccountForm.get('password')?.hasError('minlength') && createAccountForm.get('password')?.touched) {
+                                    <span class="form-field-error">Password must be at least 6 characters</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employment Details -->
+                    <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-8 bg-green-300 rounded-xs flex items-center justify-center my-4 ml-4">
+                                <mat-icon class="text-green-600!">work</mat-icon>
+                            </div>
+                            <div class="text-default-font text-xl"> Employment Details </div>
+                        </div>
+                        <div class="flex items-start gap-10 px-4">
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Hourly Wage</label>
+                                <input class="form-field bg-neutral-100!" type="number" step="0.01" min="0" formControlName="hourlyWage" placeholder="00.00€" />
+                                @if (createAccountForm.get('hourlyWage')?.hasError('min') && createAccountForm.get('hourlyWage')?.touched) {
+                                    <span class="form-field-error">Hourly wage must be at least 0</span>
+                                }
+                                @if (createAccountForm.get('hourlyWage')?.hasError('invalidHourlyWage') && createAccountForm.get('hourlyWage')?.touched) {
+                                    <span class="form-field-error">Hourly wage must be greater than 0 for non-admin users</span>
+                                }
+                            </div>
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Hourly Overtime Wage</label>
+                                <input class="form-field bg-neutral-100!" type="number" step="0.01" min="0" formControlName="hourlyOvertimeWage" placeholder="00.00€" />
+                                @if (createAccountForm.get('hourlyOvertimeWage')?.hasError('min') && createAccountForm.get('hourlyOvertimeWage')?.touched) {
+                                    <span class="form-field-error">Hourly overtime wage must be at least 0</span>
+                                }
+                                @if (createAccountForm.get('hourlyOvertimeWage')?.hasError('invalidHourlyOvertimeWage') && createAccountForm.get('hourlyOvertimeWage')?.touched) {
+                                    <span class="form-field-error">Hourly overtime wage must be greater than 0 for non-admin users</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-10 px-4">
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Working Hours Per Week</label>
+                                <input class="form-field bg-neutral-100!" type="number" step="0.5" min="0" formControlName="workingHoursPerWeek" placeholder="40.0" />
+                                @if (createAccountForm.get('workingHoursPerWeek')?.hasError('min') && createAccountForm.get('workingHoursPerWeek')?.touched) {
+                                    <span class="form-field-error">Working hours per week must be at least 0</span>
+                                }
+                                @if (createAccountForm.get('workingHoursPerWeek')?.hasError('invalidWorkingHoursPerWeek') && createAccountForm.get('workingHoursPerWeek')?.touched) {
+                                    <span class="form-field-error">Working hours per week must be greater than 0 for non-admin users</span>
+                                }
+                            </div>
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Roles<tinn-mandatory-mark /></label>
+                                <tinn-multi-select-dropdown [control]="createAccountForm.controls.roles" [options]="availableRoles" [placeholder]="'Select roles'" />
+
+                                @if (createAccountForm.get('roles')?.hasError('required') && createAccountForm.get('roles')?.touched) {
+                                    <span class="form-field-error">At least one role is required</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="h-0.25 bg-neutral-200"></div>
+
+                    <div class="flex justify-end gap-4">
+                        <button type="button" class="brand-neutral-button" (click)="navigateToDashboard()">
+                            <mat-icon>cancel</mat-icon>
+                            Cancel
+                        </button>
+
+                        <button type="submit" [disabled]="loading() || !createAccountForm.valid" class="brand-primary-button">
+                            <mat-icon>person_add</mat-icon>
+                            Create Staff Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

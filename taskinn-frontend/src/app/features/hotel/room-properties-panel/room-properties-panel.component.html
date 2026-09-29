@@ -1,0 +1,51 @@
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-heading-3 text-default-font">Room Properties</h3>
+        <button class="p-1 hover:bg-neutral-100 rounded" (click)="onCancel()" type="button">
+            <mat-icon class="text-neutral-600">close</mat-icon>
+        </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <!-- Room Number -->
+        <div class="mb-4">
+            <label class="form-field-label" for="roomNumber">Room Number</label>
+            <input class="form-field" id="roomNumber" type="text" inputmode="numeric" formControlName="roomNumber" placeholder="e.g., 101" (keypress)="onRoomNumberKeyPress($event)" />
+            @if (form.get('roomNumber')?.hasError('required') && form.get('roomNumber')?.touched) {
+                <span class="form-field-error">Room number is required</span>
+            }
+            @if (form.get('roomNumber')?.hasError('pattern') && form.get('roomNumber')?.touched) {
+                <span class="form-field-error">Room number must contain only digits</span>
+            }
+        </div>
+
+        <!-- Room Type -->
+        <div class="mb-6">
+            <label class="form-field-label" for="roomType">Room Type</label>
+            @if (roomTypeService.loading()) {
+                <p class="text-caption text-subtext-color">Loading room types...</p>
+            } @else if (roomTypeService.error()) {
+                <p class="text-caption text-error-600">Failed to load room types</p>
+            } @else {
+                <select class="form-field" id="roomType" formControlName="roomTypeId">
+                    <option [value]="null" disabled>Select a type</option>
+                    @for (type of roomTypeService.roomTypeList(); track type.id) {
+                        <option [value]="type.id">{{ type.name }}</option>
+                    }
+                </select>
+                @if (form.get('roomTypeId')?.hasError('required') && form.get('roomTypeId')?.touched) {
+                    <span class="form-field-error">Room type is required</span>
+                }
+            }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between">
+            <button class="brand-neutral-button" type="button" (click)="onCancel()">Cancel</button>
+            <button [disabled]="form.invalid" class="brand-primary-button" type="submit">
+                <mat-icon class="text-lg mr-1">save</mat-icon>
+                Save Room
+            </button>
+        </div>
+    </form>
+</div>

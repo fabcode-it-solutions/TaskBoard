@@ -1,0 +1,132 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskinn-backend-dev
+  namespace: 25ws-ase-pr-inso-07
+spec:
+  selector:
+    matchLabels:
+      app: taskinn-backend-dev
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: taskinn-backend-dev
+    spec:
+      containers:
+        - name: taskinn-backend-dev
+          image: registry.reset.inso-w.at/2025ws-ase-pr-group/25ws-ase-pr-inso-07/backend:latest
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secrets
+                  key: STRIPE_WEBHOOK_SECRET_DEV
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "50m"
+              ephemeral-storage: "100Mi"
+            limits:
+              memory: "2048Mi"
+              cpu: "500m"
+              ephemeral-storage: "100Mi"
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            failureThreshold: 120
+      imagePullSecrets:
+        - name: secret-dockercfg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s-taskinn-backend-dev
+  namespace: 25ws-ase-pr-inso-07
+spec:
+  type: ClusterIP
+  selector:
+    app: taskinn-backend-dev
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskinn-backend-dev-ingress
+  namespace: 25ws-ase-pr-inso-07
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  rules:
+    - host: "25ws-ase-pr-inso-07.apps.student.inso-w.at"
+      http:
+        paths:
+          # Backend API under /dev/api
+          - path: /dev(/|$)(api/.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: s-taskinn-backend-dev
+                port:
+                  number: 8080
+
+          # H2 console under /dev/h2-console
+          - path: /dev(/|$)(h2-console(/|$).*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: s-taskinn-backend-dev
+                port:
+                  number: 8080
+
+          # Swagger under /dev/swagger-ui
+          - path: /dev(/|$)(swagger-ui(/|$).*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: s-taskinn-backend-dev
+                port:
+                  number: 8080
+
+          # Actuator under /dev/actuator
+          - path: /dev(/|$)(actuator(/|$).*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: s-taskinn-backend-dev
+                port:
+                  number: 8080
+
+          # WebSocket under /dev/ws
+          - path: /dev(/|$)(ws(/|$).*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: s-taskinn-backend-dev
+                port:
+                  number: 8080

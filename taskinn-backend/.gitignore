@@ -1,0 +1,27 @@
+# ==== System files ====
+**/.DS_Store
+**/.Thumbs.db
+
+# ==== Compiled files ====
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Database files
+**.db
+log/
+database/
+.idea
+.vscode/*
+.mvn
+
+# Frontend builds
+src/main/resources/static/dev/
+
+# Nginx
+nginx.conf
+
+**.enc
+
+.settings/

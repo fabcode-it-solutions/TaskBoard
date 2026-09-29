@@ -1,0 +1,34 @@
+<div class="bg-white rounded-xs shadow-sm border border-neutral-200 p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-heading-3 text-neutral-800">Select Employees</h3>
+        <div class="flex gap-2">
+            <button class="brand-neutral-button text-xs px-2 py-1" (click)="onSelectAll()" [attr.disabled]="loading || null">
+                <span class="text-xs">Select All</span>
+            </button>
+            <button class="brand-neutral-button text-xs px-2 py-1" (click)="onDeselectAll()" [attr.disabled]="loading || null">
+                <span class="text-xs">Clear</span>
+            </button>
+        </div>
+    </div>
+    <div class="mb-4">
+        <label class="block text-caption text-neutral-600 mb-1">Filter by Role</label>
+        <select class="w-full border border-neutral-200 rounded-xs px-3 py-2 text-body" [(ngModel)]="selectedRoleId" (ngModelChange)="onRoleFilterChange(selectedRoleId)">
+            <option [ngValue]="null">All Roles</option>
+            @for (role of schedulingRoles; track role.id) {
+                <option [ngValue]="role.id">{{ role.name }}</option>
+            }
+        </select>
+    </div>
+    <div class="max-h-96 overflow-y-auto border border-neutral-200 rounded-xs">
+        @for (employee of filteredEmployees; track employee.id) {
+            <label class="flex items-center px-4 py-2 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100">
+                <input type="checkbox" class="mr-3 h-4 w-4 text-brand-500" [checked]="selectedEmployeeIds.has(employee.id)" (change)="toggleEmployeeSelection(employee.id)" />
+                <span class="text-body text-neutral-800">{{ employee.firstName }} {{ employee.lastName }}</span>
+                @if (employee.schedulingRoleName) {
+                    <span class="ml-auto text-caption text-neutral-500">({{ employee.schedulingRoleName }})</span>
+                }
+            </label>
+        }
+    </div>
+    <p class="text-caption text-neutral-500 mt-2">{{ selectedEmployeeIds.size }} employee(s) selected ({{ filteredEmployees.length }} shown)</p>
+</div>

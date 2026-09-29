@@ -1,0 +1,145 @@
+<div class="min-h-screen bg-linear-to-b from-neutral-100 to-white flex flex-col md:max-w-[480px] md:mx-auto md:shadow-[0_0_40px_rgba(0,0,0,0.1)]">
+    <tinn-mobile-header class="sticky top-0" [title]="'Report Issue'" [showBackButton]="true" (backClick)="onBackClick()" />
+
+    <div class="flex-1 p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+            <!-- Form Header -->
+            <div class="bg-linear-to-br from-amber-400 to-amber-500 px-6 py-8 text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20">
+                    <mat-icon class="text-white!">build</mat-icon>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white mb-2"> Report Maintenance Issue </h2>
+                <p class="text-[0.9rem] text-white/95"> Fill in the details below to submit your report </p>
+            </div>
+
+            <!-- Form -->
+            <form [formGroup]="reportForm" (ngSubmit)="onSubmit()" class="p-6">
+                <!-- Room Selection -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between mb-2 px-1">
+                        <span class="text-[0.95rem] font-semibold text-neutral-900"> Room<tinn-mandatory-mark /> </span>
+                        <mat-icon class="text-neutral-500 w-[1.125rem]! h-[1.125rem]! text-lg">meeting_room</mat-icon>
+                    </label>
+
+                    <input
+                        type="text"
+                        formControlName="roomSearch"
+                        placeholder="Search or select a room"
+                        [matAutocomplete]="roomAuto"
+                        required
+                        class="w-full p-4 text-base text-neutral-900 bg-neutral-100 border-2 border-transparent rounded-xl transition-all duration-200 font-sans placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-600/10 disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed" />
+
+                    <mat-autocomplete #roomAuto="matAutocomplete" (optionSelected)="onRoomSelected($event)" [displayWith]="displayRoomFn">
+                        @if (filteredRooms().length === 0) {
+                            <mat-option [value]="null" disabled>No rooms found</mat-option>
+                        }
+                        @for (room of filteredRooms(); track room.id) {
+                            <mat-option [value]="room">Room {{ room.roomNumber }}</mat-option>
+                        }
+                    </mat-autocomplete>
+
+                    @if (reportForm.get('roomId')?.hasError('required') && (reportForm.get('roomId')?.touched || submitted)) {
+                        <span class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-sm">
+                            <mat-icon class="w-4! h-4! text-base">error</mat-icon>
+                            Please select a room from the list
+                        </span>
+                    }
+                </div>
+
+                <!-- Title -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between mb-2 px-1">
+                        <span class="text-[0.95rem] font-semibold text-neutral-900"> Issue Title<tinn-mandatory-mark /> </span>
+                        <mat-icon class="text-neutral-500 w-[1.125rem]! h-[1.125rem]! text-lg">title</mat-icon>
+                    </label>
+
+                    <input
+                        type="text"
+                        formControlName="title"
+                        placeholder="Brief description of the issue"
+                        required
+                        class="w-full p-4 text-base text-neutral-900 bg-neutral-100 border-2 border-transparent rounded-xl transition-all duration-200 font-sans placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-600/10 disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed" />
+
+                    @if (reportForm.get('title')?.hasError('required') && reportForm.get('title')?.touched) {
+                        <span class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-sm">
+                            <mat-icon class="w-4! h-4! text-base">error</mat-icon>
+                            Title is required
+                        </span>
+                    }
+                    @if (reportForm.get('title')?.hasError('minlength') && submitted) {
+                        <span class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-sm">
+                            <mat-icon class="w-4! h-4! text-base">error</mat-icon>
+                            Title must be at least 3 characters
+                        </span>
+                    }
+                    @if (reportForm.get('title')?.hasError('maxlength')) {
+                        <span class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-sm">
+                            <mat-icon class="w-4! h-4! text-base">error</mat-icon>
+                            Title cannot exceed 100 characters
+                        </span>
+                    }
+                </div>
+
+                <!-- Priority -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between mb-2 px-1">
+                        <span class="text-[0.95rem] font-semibold text-neutral-900"> Priority<tinn-mandatory-mark /> </span>
+                        <mat-icon class="text-neutral-500 w-[1.125rem]! h-[1.125rem]! text-lg">flag</mat-icon>
+                    </label>
+
+                    <select
+                        required
+                        formControlName="priority"
+                        class="w-full p-4 text-base text-neutral-900 bg-neutral-100 border-2 border-transparent rounded-xl transition-all duration-200 font-sans focus:outline-none focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-600/10 disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed">
+                        @for (option of priorityOptions; track option.value) {
+                            <option [value]="option.value">{{ option.label }}</option>
+                        }
+                    </select>
+
+                    @if (reportForm.get('priority')?.hasError('required') && reportForm.get('priority')?.touched) {
+                        <span class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-sm">
+                            <mat-icon class="w-4! h-4! text-base">error</mat-icon>
+                            Priority is required
+                        </span>
+                    }
+                </div>
+
+                <!-- Description -->
+                <div class="mb-6">
+                    <label class="flex items-center justify-between mb-2 px-1">
+                        <span class="text-[0.95rem] font-semibold text-neutral-900"> Description (Optional) </span>
+                        <mat-icon class="text-neutral-500 w-[1.125rem]! h-[1.125rem]! text-lg">description</mat-icon>
+                    </label>
+
+                    <textarea
+                        formControlName="description"
+                        placeholder="Additional details about the issue"
+                        rows="3"
+                        class="w-full p-4 text-base text-neutral-900 bg-neutral-100 border-2 border-transparent rounded-xl transition-all duration-200 font-sans placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-600/10 disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed resize-none min-h-[120px] leading-6"></textarea>
+
+                    @if (reportForm.get('description')?.hasError('maxlength')) {
+                        <span class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-50 text-rose-600 text-sm">
+                            <mat-icon class="w-4! h-4! text-base">error</mat-icon>
+                            Description cannot exceed 1000 characters
+                        </span>
+                    }
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    [disabled]="loading()"
+                    class="w-full mt-4 px-6 py-4 rounded-xl text-lg font-semibold text-white flex items-center justify-center gap-3 bg-linear-to-br from-green-600 to-green-500 shadow-[0_4px_12px_rgba(22,163,74,0.3)] transition-all duration-200 active:scale-[0.98] active:shadow-[0_2px_6px_rgba(22,163,74,0.4)] disabled:cursor-not-allowed disabled:shadow-none disabled:bg-linear-to-br disabled:from-neutral-300 disabled:to-neutral-400">
+                    @if (loading()) {
+                        <mat-icon class="animate-spin">hourglass_empty</mat-icon>
+                        <span>Submitting...</span>
+                    } @else {
+                        <mat-icon class="w-6! h-6! text-2xl">send</mat-icon>
+                        <span>Submit Report</span>
+                    }
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,94 @@
+:host {
+    display: block;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+svg {
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.touch-none {
+    touch-action: none;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.cleaning-pulse {
+    animation: cleaningPulse 2s ease-in-out infinite;
+}
+
+@keyframes cleaningPulse {
+    0%,
+    100% {
+        opacity: 0.8;
+        stroke-width: 6;
+    }
+    50% {
+        opacity: 1;
+        stroke-width: 8;
+    }
+}
+
+.navigation-arrow {
+    animation: arrowFlow 2s linear infinite;
+}
+
+@keyframes arrowFlow {
+    0% {
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dashoffset: -15;
+    }
+}
+
+.cross-floor-pulse {
+    animation: crossFloorPulse 2s ease-in-out infinite;
+}
+
+@keyframes crossFloorPulse {
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}

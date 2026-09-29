@@ -1,0 +1,22 @@
+<div class="relative">
+    <!-- Trigger Button -->
+    <button type="button" class="w-6 h-6 flex items-center justify-center rounded hover:bg-neutral-100 transition-colors" (click)="toggleMenu($event)" aria-label="Menu options">
+        <mat-icon class="!text-base text-neutral-600">more_vert</mat-icon>
+    </button>
+
+    <!-- Dropdown Menu -->
+    @if (isOpen) {
+        <div class="absolute right-0 top-8 w-40 bg-white rounded-xs shadow-lg border border-neutral-200 py-1 z-50">
+            @for (item of items(); track item.action) {
+                <button type="button" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors" [class.hover:bg-error-50]="item.danger" (click)="onItemClick(item.action, $event)">
+                    <mat-icon class="!text-base" [class.text-neutral-600]="!item.danger" [class.text-error-600]="item.danger">
+                        {{ item.icon }}
+                    </mat-icon>
+                    <span [class.text-neutral-700]="!item.danger" [class.group-hover:text-error-600]="item.danger">
+                        {{ item.label }}
+                    </span>
+                </button>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,174 @@
+<div class="min-h-screen mx-auto p-8 bg-neutral-50">
+    <div class="mb-8">
+        <tinn-page-header title="Create Shift Layout" subtitle="Define and mantain employee scheduling" icon="calendar_month" />
+    </div>
+    <div class="flex items-center justify-between gap-4 bg-white rounded-xs shadow-sm border border-neutral-200 p-6 mb-8">
+        <div class="flex gap-2">
+            <button [class]="!editing ? 'brand-primary-button' : 'brand-neutral-button'" (click)="editing = false" [attr.disabled]="loading() || null">
+                <mat-icon class="text-sm">search</mat-icon>
+                <span class="text-sm">View</span>
+            </button>
+            <button [class]="editing ? 'brand-primary-button' : 'brand-neutral-button'" (click)="editing = true" [attr.disabled]="loading() || null">
+                <mat-icon class="text-sm">edit</mat-icon>
+                <span class="text-sm">Edit</span>
+            </button>
+        </div>
+        @if (!editing) {
+            <div class="flex gap-2 items-center">
+                <button class="brand-neutral-button !h-8 !px-1" (click)="stepMonth(-1)" [attr.disabled]="loading() || null">
+                    <mat-icon class="text-sm">keyboard_arrow_left</mat-icon>
+                </button>
+                <input class="form-field !h-10 text-sm !min-w-[150px]" type="number" min="2024" max="2999" [attr.disabled]="loading() || null" [(ngModel)]="year" (change)="loadMonth()" />
+                <select class="form-field !h-10 text-sm !min-w-[150px]" [attr.disabled]="loading() || null" [(ngModel)]="month" (ngModelChange)="updateMonthModel($event)">
+                    <option value="1">Jan</option>
+                    <option value="2">Feb</option>
+                    <option value="3">Mar</option>
+                    <option value="4">Apr</option>
+                    <option value="5">May</option>
+                    <option value="6">Jun</option>
+                    <option value="7">Jul</option>
+                    <option value="8">Aug</option>
+                    <option value="9">Sep</option>
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                </select>
+                <button class="brand-neutral-button !h-8 !px-1" (click)="stepMonth(1)" [attr.disabled]="loading() || null">
+                    <mat-icon class="text-sm">keyboard_arrow_right</mat-icon>
+                </button>
+            </div>
+
+            <button class="brand-neutral-button" (click)="openPdf()" [attr.disabled]="loading() || null">
+                <mat-icon>picture_as_pdf</mat-icon>
+                <span class="text-sm">Export PDF</span>
+            </button>
+        }
+        @if (editing) {
+            <select class="form-field ml-3 text-sm !h-10" [attr.disabled]="loading() || null" (change)="loadTemplateFromEvent($event)">
+                <option value="-1">-- Load from template --</option>
+                @for (template of templates; track template) {
+                    <option [value]="$index">
+                        {{ template.name }}
+                        {{ template.content.associatedRole ? ' (R)' : '' }}
+                    </option>
+                }
+            </select>
+            <div class="flex-grow"></div>
+            @if (employees.length > 0) {
+                <button class="brand-neutral-button ml-3" (click)="optimizeShiftSchedule()" [attr.disabled]="loading() || null">
+                    <mat-icon class="text-sm">auto_fix_high</mat-icon>
+                    <span class="text-sm">Solve</span>
+                </button>
+                <button class="brand-primary-button ml-3" (click)="saveShiftSchedule()" [attr.disabled]="loading() || null">
+                    <mat-icon class="text-sm">save</mat-icon>
+                    <span class="text-sm">Save</span>
+                </button>
+            }
+        }
+    </div>
+    <div class="flex bg-white rounded-xs shadow-sm border border-neutral-200 p-6 mb-8">
+        <div class="overflow-scroll p-1">
+            <table class="bg-white table-auto w-full border-collapse border border-neutral-200">
+                <thead class="border-b border-neutral-200">
+                    <tr class="bg-white fixfirstcol">
+                        <th class="bg-white px-8 whitespace-nowrap text-body-bold text-neutral-700"> {{ monthNames[month - 1].substring(0, 3) }} {{ year < 2024 ? 2024 : year }} </th>
+                        @for (day of weekdays; track $index) {
+                            <th class="border-b border-neutral-200 font-normal">
+                                <div class="flex flex-col gap-1 p-1">
+                                    <div class="whitespace-nowrap text-body-bold p-2">{{ $index + 1 }}. {{ dayNames[day] }}</div>
+                                    @if (editing) {
+                                        <div class="flex flex-row gap-2">
+                                            <mat-icon class="text-sm shrink-0">access_time</mat-icon>
+                                            <input
+                                                class="text-xs flex-grow px-2 py-1 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+                                                type="number"
+                                                min="0"
+                                                max="24"
+                                                [(ngModel)]="dailyHours[$index]"
+                                                [attr.disabled]="loading() || null" />
+                                        </div>
+                                        <div class="flex flex-row gap-2">
+                                            <mat-icon class="text-sm shrink-0">people</mat-icon>
+                                            <input
+                                                class="text-xs flex-grow px-2 py-1 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+                                                type="number"
+                                                min="0"
+                                                [max]="employees.length"
+                                                [(ngModel)]="staffingLevels[$index]"
+                                                [attr.disabled]="loading() || null" />
+                                        </div>
+                                    }
+                                </div>
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (employees.length === 0) {
+                        <tr class="bg-white border-b border-neutral-200 font-bold text-left fixfirstcol">
+                            <td class="bg-white border-b border-neutral-200"></td>
+                            <td class="pl-1" [colSpan]="weekdays.length">Select employees to get started...</td>
+                        </tr>
+                    }
+                    @for (employee of employees; track employee) {
+                        @let employeeIndex = $index;
+                        <tr class="bg-white fixfirstcol">
+                            <th class="bg-white p-3 border-b border-neutral-200 font-normal text-left">
+                                <div class="flex flex-row items-center">
+                                    @if (!editing) {
+                                        <button class="brand-error-button text-xs px-2 py-1 gap-0.5 mr-2" (click)="removeEmployee(employeeIndex)" [attr.disabled]="loading() || null">
+                                            <mat-icon class="text-xs" style="transform: scale(0.75)">person_remove</mat-icon>
+                                        </button>
+                                    }
+                                    <span class="whitespace-nowrap text-body text-neutral-800"> {{ employee.employee.firstName }} {{ employee.employee.lastName }} </span>
+                                </div>
+                            </th>
+                            @for (day of weekdays; track $index) {
+                                @let schedule = employee.schedule[$index];
+                                <td
+                                    class="border border-neutral-200 p-2 hover:bg-neutral-50 cursor-pointer transition-colors"
+                                    (click)="switchEmployeeAssignment(employeeIndex, $index)"
+                                    [class.bg-brand-300]="schedule === 1"
+                                    [class.bg-warning-200]="schedule > 1">
+                                    <div class="flex flex-col items-center">
+                                        <mat-icon>{{ computeScheduleSymbol(schedule) }}</mat-icon>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                    @if (!editing) {
+                        <tr class="bg-white fixfirstcol">
+                            <th class="bg-white border-b border-neutral-200 font-normal text-left">
+                                <div class="p-2 flex flex-col gap-1">
+                                    @if (employees.length > 0) {
+                                        <button class="brand-error-button text-xs px-2 py-1 gap-0.5 items-center" (click)="removeAllEmployees()" [attr.disabled]="loading() || null">
+                                            <mat-icon class="text-xs" style="transform: scale(0.75)">person_remove</mat-icon>
+                                            <span>Remove all</span>
+                                        </button>
+                                    }
+                                    <select class="form-field text-sm w-full min-w-40" (change)="addEmployeeOnEvent($event)" [attr.disabled]="loading() || null">
+                                        <option value="-1">-- Add employee --</option>
+                                        @for (employee of schedulableEmployees; track employee) {
+                                            @if (!addedEmployeeIds.has(employee.id)) {
+                                                <option [value]="$index">{{ employee.firstName }} {{ employee.lastName }}</option>
+                                            }
+                                        }
+                                    </select>
+                                    <select class="form-field text-sm w-full min-w-40" (change)="selectByRoleOnEvent($event)" [attr.disabled]="loading() || null">
+                                        <option value="-1">-- Select by role --</option>
+                                        @for (role of roles; track role) {
+                                            <option [value]="$index">{{ role.name }}</option>
+                                        }
+                                    </select>
+                                </div>
+                            </th>
+                            <td [colSpan]="weekdays.length"></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (editing) {}
+    </div>
+</div>

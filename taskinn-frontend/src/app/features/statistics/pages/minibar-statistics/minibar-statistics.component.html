@@ -1,0 +1,112 @@
+<div class="flex flex-col gap-6 h-full min-h-0 pb-6">
+    <!-- Filters & Controls -->
+    <div class="bg-neutral-100 border border-neutral-200 rounded-lg px-4 py-3">
+        <div class="flex flex-wrap gap-6 items-end justify-between">
+            <!-- Date Filter -->
+            <form [formGroup]="filterForm" class="flex gap-6 items-end">
+                <div class="flex flex-col gap-2">
+                    <label class="form-field-label">From</label>
+                    <input type="date" formControlName="from" class="px-3 py-2 rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary w-40" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="form-field-label">To</label>
+                    <input type="date" formControlName="to" class="px-3 py-2 rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary w-40" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <button type="button" (click)="applyFilters()" class="brand-primary-button" [disabled]="!canApply() || loading()"> Apply Dates </button>
+                </div>
+            </form>
+
+            <!-- Add Item Control -->
+            <div class="flex flex-col gap-2 border-l border-neutral-300 pl-6">
+                <label class="form-field-label">Add Item Chart</label>
+                <div class="flex gap-2">
+                    <select
+                        [ngModel]="selectedItemToAdd()"
+                        (ngModelChange)="selectedItemToAdd.set($event ? +$event : null)"
+                        class="px-3 py-2 rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary w-48">
+                        <option [value]="null" disabled selected>Select item...</option>
+                        @for (item of availableItems(); track item.id) {
+                            <option [value]="item.id">{{ item.name }}</option>
+                        }
+                    </select>
+                    <button type="button" (click)="addItem()" [disabled]="!selectedItemToAdd() || loading()" class="brand-primary-button"> Add </button>
+                </div>
+            </div>
+        </div>
+        @if (dateRangeError()) {
+            <div class="text-sm text-red-600 font-medium mt-3">
+                {{ dateRangeError() }}
+            </div>
+        }
+        <div class="text-sm text-neutral-500 mt-3 font-medium">
+            <mat-icon class="align-bottom text-base h-5 w-5 mr-1">info</mat-icon>
+            Leave dates empty to show full history. Filters apply to all visible charts.
+        </div>
+    </div>
+
+    @if (!stats() && !loading()) {
+        <div class="text-center text-neutral-500 italic mt-8">No statistics data available.</div>
+    } @else {
+        <div class="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col gap-6">
+            <!-- Pie Charts Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Earnings Pie -->
+                <div class="bg-white rounded-lg border border-neutral-200 shadow-sm p-4 flex flex-col h-80">
+                    <h3 class="font-bold text-lg text-neutral-800 mb-4 flex items-center gap-2">
+                        <mat-icon class="text-brand-primary">monetization_on</mat-icon>
+                        Sales by Earnings (Euros)
+                    </h3>
+                    <div class="flex-1 min-h-0 relative">
+                        <canvas baseChart [type]="'pie'" [data]="getEarningsPieData()" [options]="pieOptions"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quantity Pie -->
+                <div class="bg-white rounded-lg border border-neutral-200 shadow-sm p-4 flex flex-col h-80">
+                    <h3 class="font-bold text-lg text-neutral-800 mb-4 flex items-center gap-2">
+                        <mat-icon class="text-brand-primary">inventory_2</mat-icon>
+                        Sales by Quantity
+                    </h3>
+                    <div class="flex-1 min-h-0 relative">
+                        <canvas baseChart [type]="'pie'" [data]="getQuantityPieData()" [options]="pieOptions"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header for Line Charts -->
+            <div class="flex items-center gap-2 mt-2">
+                <mat-icon class="text-neutral-500 text-sm h-4 w-4">show_chart</mat-icon>
+                <span class="text-sm font-semibold text-neutral-600 uppercase tracking-wide"> Daily Sales Trends </span>
+            </div>
+
+            <!-- Line Charts List -->
+            <div class="flex flex-col gap-6">
+                @for (id of selectedIds(); track id) {
+                    <div class="bg-white rounded-lg border border-neutral-200 shadow-sm flex flex-col h-64">
+                        <!-- Card Header -->
+                        <div class="bg-neutral-50 px-4 py-2 border-b border-neutral-200 flex justify-between items-center">
+                            <h3 class="font-bold text-neutral-800">
+                                {{ getItemName(id) }}
+                            </h3>
+                            <button (click)="removeItem(id)" class="text-neutral-400 hover:text-red-500 transition-colors cursor-pointer" title="Remove chart">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </div>
+
+                        <!-- Chart -->
+                        <div class="p-4 flex-1 min-h-0 relative">
+                            @if (stats()?.dailyItemSales?.[id]) {
+                                <canvas baseChart [type]="'line'" [data]="getDailyLineData(id)" [options]="lineOptions"></canvas>
+                            } @else {
+                                <div class="absolute inset-0 flex items-center justify-center text-neutral-400 italic">No sales data for this period</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

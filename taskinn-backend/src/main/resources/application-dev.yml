@@ -1,0 +1,17 @@
+# This file extends application.yml and overrides values for development
+
+spring:
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    show-sql: true
+
+app:
+  frontend:
+    base-url: https://25ws-ase-pr-inso-07.apps.student.inso-w.at/dev
+  cors:
+    allowed-origins: https://25ws-ase-pr-inso-07.apps.student.inso-w.at
+  dev:
+    expose-reset-token: true

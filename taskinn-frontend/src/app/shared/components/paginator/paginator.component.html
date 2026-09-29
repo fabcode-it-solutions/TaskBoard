@@ -1,0 +1,56 @@
+<div class="flex flex-wrap items-center justify-center gap-4 py-4 px-2 text-sm text-neutral-600">
+    <!-- Items per page -->
+    <div class="flex items-center gap-2">
+        <span class="font-medium">Items per page:</span>
+        <select
+            [value]="pageSize()"
+            (change)="onPageSizeChange($any($event.target).value)"
+            class="bg-neutral-100 hover:bg-neutral-200 rounded-md px-3 py-2 font-medium text-neutral-600 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500">
+            @for (option of pageSizeOptions(); track option) {
+                <option [value]="option">{{ option }}</option>
+            }
+        </select>
+    </div>
+
+    <!-- Range display -->
+    <div class="font-medium"> {{ startIndex }} - {{ endIndex }} of {{ length() }} </div>
+
+    <!-- Navigation buttons -->
+    <div class="flex items-center gap-2">
+        @if (showFirstLastButtons()) {
+            <button
+                (click)="goToFirstPage()"
+                [disabled]="isFirstPage"
+                class="bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-md w-9 h-9 flex items-center justify-center transition-colors cursor-pointer"
+                [attr.aria-label]="'First page'">
+                <mat-icon class="text-[20px]">first_page</mat-icon>
+            </button>
+        }
+
+        <button
+            (click)="goToPreviousPage()"
+            [disabled]="isFirstPage"
+            class="bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-md w-9 h-9 flex items-center justify-center transition-colors cursor-pointer"
+            [attr.aria-label]="'Previous page'">
+            <mat-icon class="text-[20px]">chevron_left</mat-icon>
+        </button>
+
+        <button
+            (click)="goToNextPage()"
+            [disabled]="isLastPage"
+            class="bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-md w-9 h-9 flex items-center justify-center transition-colors cursor-pointer"
+            [attr.aria-label]="'Next page'">
+            <mat-icon class="text-[20px]">chevron_right</mat-icon>
+        </button>
+
+        @if (showFirstLastButtons()) {
+            <button
+                (click)="goToLastPage()"
+                [disabled]="isLastPage"
+                class="bg-neutral-100 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-md w-9 h-9 flex items-center justify-center transition-colors cursor-pointer"
+                [attr.aria-label]="'Last page'">
+                <mat-icon class="text-[20px]">last_page</mat-icon>
+            </button>
+        }
+    </div>
+</div>

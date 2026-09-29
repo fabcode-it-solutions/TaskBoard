@@ -1,0 +1,103 @@
+<div class="flex flex-col gap-4 h-full min-h-0">
+    <div class="bg-neutral-100 border border-neutral-200 rounded-lg px-4 py-3">
+        <form [formGroup]="filterForm">
+            <div class="flex flex-wrap gap-6 items-end">
+                <div class="flex flex-col gap-2">
+                    <label class="form-field-label">From</label>
+                    <input type="date" formControlName="periodFrom" class="px-3 py-2 rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary w-40" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="form-field-label">To</label>
+                    <input type="date" formControlName="periodTo" class="px-3 py-2 rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary w-40" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <button type="button" (click)="applyFilters()" class="brand-primary-button" [disabled]="!canApply()"> Apply Dates </button>
+                </div>
+
+                <div class="flex flex-col gap-2 relative">
+                    <label class="form-field-label">Month line plot</label>
+                    <div class="flex gap-2 items-end">
+                        <div class="relative">
+                            <input
+                                type="text"
+                                [value]="filterForm.value.month"
+                                readonly
+                                (click)="toggleCalendar()"
+                                class="px-3 py-2 rounded-lg border border-neutral-300 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary w-32"
+                                placeholder="Select month" />
+
+                            @if (showCalendar()) {
+                                <div class="absolute top-full left-0 mt-2 bg-white border border-neutral-300 rounded-lg shadow-lg p-4 z-10 w-72">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <button type="button" (click)="previousYear()" class="px-2 py-1 text-neutral-600 hover:bg-neutral-100 rounded text-lg"> ← </button>
+                                        <select [(ngModel)]="calendarYear" [ngModelOptions]="{ standalone: true }" class="px-3 py-1 border border-neutral-300 rounded bg-white text-sm font-medium">
+                                            @for (y of calendarYears(); track y) {
+                                                <option [value]="y">{{ y }}</option>
+                                            }
+                                        </select>
+                                        <button type="button" (click)="nextYear()" class="px-2 py-1 text-neutral-600 hover:bg-neutral-100 rounded text-lg"> → </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-2">
+                                        @for (month of getMonths(); track month.index) {
+                                            <button
+                                                type="button"
+                                                (click)="selectMonth(calendarYear(), month.index)"
+                                                class="px-3 py-2 text-sm font-medium rounded border transition-all"
+                                                [ngClass]="
+                                                    isMonthSelected(month.index) ? 'bg-brand-primary text-white border-brand-primary' : 'bg-neutral-100 text-neutral-700 border-neutral-200 hover:bg-neutral-200 hover:border-brand-primary'
+                                                ">
+                                                {{ month.short }}
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (dateRangeError()) {
+                <div class="text-sm text-red-600 font-medium mt-3">
+                    {{ dateRangeError() }}
+                </div>
+            }
+            <div class="text-sm text-neutral-500 mt-3 font-medium">
+                <mat-icon class="align-bottom text-base h-5 w-5 mr-1">info</mat-icon>
+                Date filters control the bottom two bar charts. Leave empty for full history. Month filter controls the upper right line plot.
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+        <div class="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col min-h-0">
+            <div class="text-sm font-medium text-neutral-700 mb-2">All daily bookings history</div>
+            <div class="flex-1 min-h-0">
+                <canvas baseChart [type]="'line'" [data]="allHistoryLineData()" [options]="lineOptions"> </canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col min-h-0">
+            <div class="text-sm font-medium text-neutral-700 mb-2">Number of daily bookings by selected month</div>
+            <div class="flex-1 min-h-0">
+                <canvas baseChart [type]="'line'" [data]="monthLineData()" [options]="lineOptions"> </canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col min-h-0">
+            <div class="text-sm font-medium text-neutral-700 mb-2">Bookings by month</div>
+            <div class="flex-1 min-h-0">
+                <canvas baseChart [type]="'bar'" [data]="bookingsByMonthBarData()" [options]="barOptions"> </canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col min-h-0">
+            <div class="text-sm font-medium text-neutral-700 mb-2">Bookings by room type</div>
+            <div class="flex-1 min-h-0">
+                <canvas baseChart [type]="'bar'" [data]="bookingsByRoomTypeBarData()" [options]="barOptions"> </canvas>
+            </div>
+        </div>
+    </div>
+</div>

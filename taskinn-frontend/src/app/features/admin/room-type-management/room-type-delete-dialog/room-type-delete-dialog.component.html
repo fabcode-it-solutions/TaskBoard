@@ -1,0 +1,54 @@
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="bg-red-600 h-14 flex items-center px-6 gap-3">
+        <mat-icon class="text-white!">warning</mat-icon>
+        <h2 class="text-white text-xl font-semibold">Delete Room Type</h2>
+    </div>
+
+    <div class="p-6">
+        @if (hasRooms) {
+            <div class="mb-4">
+                <p class="text-neutral-700 mb-4">
+                    The room type <strong>{{ data.roomType.name }}</strong> cannot be deleted because the following rooms are using it:
+                </p>
+                <div class="bg-neutral-50 border border-neutral-200 rounded-xs p-4 max-h-64 overflow-y-auto">
+                    <ul class="space-y-2">
+                        @for (room of data.rooms; track room.id) {
+                            <li class="flex items-center gap-2 text-neutral-700">
+                                <mat-icon class="text-neutral-500 text-sm">meeting_room</mat-icon>
+                                <span>Room {{ room.number }} (Floor {{ room.floor }})</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <p class="text-neutral-600 text-sm mt-4"> Please reassign or remove these rooms before deleting this room type. </p>
+            </div>
+        } @else {
+            <div class="mb-4">
+                <p class="text-neutral-700 mb-4">
+                    Are you sure you want to delete the room type <strong>{{ data.roomType.name }}</strong
+                    >?
+                </p>
+                <p class="text-neutral-600 text-sm"> This action cannot be undone. </p>
+            </div>
+        }
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-neutral-200">
+            @if (!hasRooms) {
+                <button type="button" class="brand-neutral-button" (click)="onCancel()">
+                    <mat-icon>cancel</mat-icon>
+                    Cancel
+                </button>
+                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xs flex items-center gap-2 transition-colors cursor-pointer" (click)="onConfirm()">
+                    <mat-icon>delete</mat-icon>
+                    Delete
+                </button>
+            } @else {
+                <button type="button" class="brand-neutral-button" (click)="onCancel()">
+                    <mat-icon>close</mat-icon>
+                    Close
+                </button>
+            }
+        </div>
+    </div>
+</div>

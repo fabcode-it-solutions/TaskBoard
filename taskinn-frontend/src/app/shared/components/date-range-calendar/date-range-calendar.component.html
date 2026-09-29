@@ -1,0 +1,28 @@
+<div #calendarContainer [ngClass]="'calendar-container w-full flex-1'" [style.max-height]="maxHeightInRem ? maxHeightInRem + 'rem' : ''">
+    @for (month of months; track month.monthName) {
+        <div class="calendar-month bg-neutral-100 rounded-lg p-4 mb-4 w-auto">
+            <!-- Month Header -->
+            <div class="mb-4">
+                <h3 class="text-xl font-semibold text-default-font text-center">{{ month.monthName }}</h3>
+            </div>
+
+            <!-- Weekday Headers -->
+            <div class="grid grid-cols-7 gap-1 mb-2">
+                @for (day of weekDays; track day) {
+                    <div class="text-center text-sm font-medium text-subtext-color px-2">{{ day }}</div>
+                }
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="grid grid-cols-7 gap-2">
+                @for (week of month.weeks; track $index) {
+                    @for (day of week; track day.date) {
+                        <button type="button" [class]="getDayClasses(day)" [disabled]="day.isDisabled" (click)="onDateClick(day)">
+                            <span class="day-number">{{ day.day }}</span>
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>

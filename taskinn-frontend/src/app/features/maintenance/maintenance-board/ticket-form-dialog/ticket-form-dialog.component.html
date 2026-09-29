@@ -1,0 +1,168 @@
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="bg-brand-primary h-14 flex items-center px-6 gap-3">
+        <mat-icon class="text-white!">{{ isCreateMode ? 'add_circle' : isViewMode ? 'visibility' : 'edit' }}</mat-icon>
+        <h2 class="text-white text-xl font-semibold">{{ dialogTitle }}</h2>
+    </div>
+
+    @if (isViewMode) {
+        <!-- View Mode -->
+        <div class="p-6 bg-white">
+            <div class="flex flex-col gap-6">
+                <!-- Title -->
+                <div>
+                    <label class="form-field-label">Title</label>
+                    <div class="text-neutral-800 font-medium">{{ data.ticket?.title }}</div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="form-field-label">Description</label>
+                    <div class="text-neutral-700 whitespace-pre-wrap">{{ data.ticket?.description }}</div>
+                </div>
+
+                <!-- Priority and Status Row -->
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="form-field-label">Priority</label>
+                        <div>
+                            <span
+                                class="inline-block text-xs px-3 py-1 rounded uppercase font-semibold"
+                                [ngClass]="
+                                    data.ticket?.priority === 'URGENT'
+                                        ? 'bg-error-600 text-white'
+                                        : data.ticket?.priority === 'HIGH'
+                                          ? 'bg-orange-500 text-white'
+                                          : data.ticket?.priority === 'MEDIUM'
+                                            ? 'bg-yellow-400 text-neutral-800'
+                                            : 'bg-green-500 text-white'
+                                ">
+                                {{ data.ticket?.priority }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex-1">
+                        <label class="form-field-label">Status</label>
+                        <div class="text-neutral-800 font-medium">{{ data.ticket?.status?.replace('_', ' ') }}</div>
+                    </div>
+                </div>
+
+                <!-- Room and Reporter Row -->
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="form-field-label">Room</label>
+                        <div class="text-neutral-800 flex items-center gap-1">
+                            <mat-icon class="!text-base text-neutral-600">room</mat-icon>
+                            Room {{ getRoomNumber() }}
+                        </div>
+                    </div>
+
+                    <div class="flex-1">
+                        <label class="form-field-label">Reported By</label>
+                        <div class="text-neutral-800">{{ getReporterName() }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons for View Mode -->
+            <div class="flex justify-between gap-3 mt-6 pt-4 border-t border-neutral-200">
+                <button type="button" class="brand-neutral-button" (click)="onCancel()">
+                    <mat-icon>close</mat-icon>
+                    Close
+                </button>
+                <div class="flex gap-3">
+                    <button type="button" class="brand-error-button" (click)="onDelete()">
+                        <mat-icon>delete</mat-icon>
+                        Delete
+                    </button>
+
+                    <button type="button" class="brand-primary-button" (click)="switchToEditMode()">
+                        <mat-icon>edit</mat-icon>
+                        Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+    } @else {
+        <!-- Create/Edit Mode -->
+        <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()" class="p-6">
+            <div class="flex flex-col gap-4">
+                <!-- Title -->
+                <div>
+                    <label class="form-field-label">Title<tinn-mandatory-mark /></label>
+                    <input class="form-field" required formControlName="title" placeholder="Enter ticket title" />
+                    @if (ticketForm.get('title')?.hasError('required') && ticketForm.get('title')?.touched) {
+                        <span class="form-field-error">Title is required</span>
+                    }
+                </div>
+                <!-- Description -->
+                <div>
+                    <label class="form-field-label">Description<tinn-mandatory-mark /></label>
+                    <textarea class="form-field resize-none" required formControlName="description" placeholder="Describe the maintenance issue" cdkTextareaAutosize cdkAutosizeMinRows="1"></textarea>
+                    @if (ticketForm.get('description')?.hasError('required') && ticketForm.get('description')?.touched) {
+                        <span class="form-field-error">Description is required</span>
+                    }
+                </div>
+
+                <!-- Priority and Status Row -->
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="form-field-label">Priority<tinn-mandatory-mark /></label>
+                        <select class="form-field" required formControlName="priority">
+                            <option [value]="null" disabled>Select priority</option>
+                            @for (priority of priorities; track priority) {
+                                <option [value]="priority">{{ priority }}</option>
+                            }
+                        </select>
+                        @if (ticketForm.get('priority')?.hasError('required') && ticketForm.get('priority')?.touched) {
+                            <span class="form-field-error">Priority is required</span>
+                        }
+                    </div>
+
+                    @if (!isCreateMode) {
+                        <div class="flex-1">
+                            <label class="form-field-label">Status<tinn-mandatory-mark /></label>
+                            <select class="form-field" required formControlName="status">
+                                <option [value]="null" disabled>Select status</option>
+                                @for (status of statuses; track status) {
+                                    <option [value]="status">{{ status.replace('_', ' ') }}</option>
+                                }
+                            </select>
+                            @if (ticketForm.get('status')?.hasError('required') && ticketForm.get('status')?.touched) {
+                                <span class="form-field-error">Status is required</span>
+                            }
+                        </div>
+                    }
+                </div>
+                <!-- Room Selection -->
+                <div>
+                    <label class="form-field-label">Room<tinn-mandatory-mark /></label>
+                    <select class="form-field" required formControlName="roomId">
+                        <option [value]="null" disabled>Select room</option>
+                        @if (rooms()) {
+                            @for (room of rooms(); track room.id) {
+                                <option [value]="room.id">Room {{ room.roomNumber }}</option>
+                            }
+                        }
+                    </select>
+                    @if (ticketForm.get('roomId')?.hasError('required') && ticketForm.get('roomId')?.touched) {
+                        <span class="form-field-error">Room is required</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between gap-3 mt-6 pt-4 border-t border-neutral-200">
+                <button type="button" class="brand-neutral-button" (click)="onCancel()">
+                    <mat-icon>cancel</mat-icon>
+                    Cancel
+                </button>
+
+                <button type="submit" [disabled]="loading() || !ticketForm.valid" class="brand-primary-button">
+                    <mat-icon>{{ isCreateMode ? 'add_circle' : 'save' }}</mat-icon>
+                    {{ isCreateMode ? 'Create Ticket' : 'Save Changes' }}
+                </button>
+            </div>
+        </form>
+    }
+</div>

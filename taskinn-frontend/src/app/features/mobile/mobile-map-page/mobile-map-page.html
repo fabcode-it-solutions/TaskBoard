@@ -1,0 +1,451 @@
+<div class="h-full bg-neutral-900 flex flex-col md:max-w-[480px] md:mx-auto md:shadow-[0_0_40px_rgba(0,0,0,0.1)] overflow-hidden">
+    <tinn-mobile-header [title]="'Floor Plan'" [showBackButton]="true" (backClick)="onBackClick()">
+        <span header-actions class="text-white text-sm font-medium">{{ currentTimeDisplay() }}</span>
+    </tinn-mobile-header>
+
+    @if (loading()) {
+        <div class="flex-1 flex items-center justify-center bg-neutral-50">
+            <div class="text-center">
+                <mat-icon class="text-6xl text-green-600 animate-pulse mb-4">map</mat-icon>
+                <p class="text-body text-neutral-600">Loading floor plan...</p>
+            </div>
+        </div>
+    } @else if (error()) {
+        <div class="flex-1 flex items-center justify-center bg-neutral-50 px-4">
+            <div class="flex flex-col justify-center text-center max-w-sm">
+                <div>
+                    <mat-icon class="text-6xl text-red-500 mb-4">error_outline</mat-icon>
+                </div>
+                <p class="text-heading-4 mb-2">Failed to Load Floor Plan</p>
+                <p class="text-body text-neutral-600 mb-4">{{ error()?.message }}</p>
+                <div class="flex justify-center">
+                    <button type="button" (click)="ngOnInit()" class="brand-primary-button">
+                        <mat-icon>refresh</mat-icon>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    } @else {
+        <div class="flex-1 relative overflow-hidden bg-neutral-50">
+            @if (currentFloorRooms().length === 0) {
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-neutral-500">
+                        <mat-icon class="text-6xl mb-2">floor</mat-icon>
+                        <p class="text-body">No rooms on this floor</p>
+                    </div>
+                </div>
+            } @else {
+                <svg
+                    #mapSvg
+                    class="w-full h-full touch-none"
+                    viewBox="0 0 1600 1000"
+                    preserveAspectRatio="xMidYMid meet"
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    [attr.aria-label]="'Hotel floor plan for floor ' + selectedFloor() + '. ' + currentFloorRooms().length + ' rooms displayed.'"
+                    (touchstart)="onTouchStart($event)"
+                    (touchmove)="onTouchMove($event)"
+                    (touchend)="onTouchEnd($event)"
+                    (wheel)="onWheel($event)"
+                    (mousedown)="onMouseDown($event)"
+                    (mousemove)="onMouseMove($event)"
+                    (mouseup)="onMouseUp($event)"
+                    (click)="onClick($event)">
+                    <title>Interactive Hotel Floor Plan</title>
+                    <desc>Navigate rooms by tapping or clicking. Use the floor selector to change floors. Pinch to zoom or use the mouse wheel.</desc>
+
+                    <g [attr.transform]="getTransformString()">
+                        <defs>
+                            <marker id="nav-arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L9,3 z" fill="#b91010" />
+                            </marker>
+                        </defs>
+
+                        <image [attr.href]="blueprintImage" x="0" y="0" width="1600" height="1000" opacity="0.3" />
+
+                        @for (room of currentFloorRooms(); track room.id) {
+                            @let meta = roomMetadata().get(room.id);
+                            @if (meta) {
+                                <polygon [attr.points]="meta.polygonString" [attr.fill]="meta.fillColor" [attr.stroke]="meta.strokeColor" stroke-width="2" opacity="0.7" class="transition-all" />
+
+                                @if (isRoomBeingCleaned(room.id)) {
+                                    <polygon [attr.points]="meta.polygonString" fill="transparent" stroke="#8b5cf6" stroke-width="6" opacity="0.9" class="pointer-events-none cleaning-pulse" />
+                                }
+
+                                <text [attr.x]="meta.centerX" [attr.y]="meta.centerY" text-anchor="middle" dominant-baseline="middle" class="text-sm font-semibold pointer-events-none" fill="#1a1a1a">
+                                    {{ room.number }}
+                                </text>
+
+                                @if (isDetailZoom()) {
+                                    @let roomTask = tasksByRoomId().get(room.id);
+                                    @if (roomTask) {
+                                        <text [attr.x]="meta.centerX" [attr.y]="meta.centerY + 12" text-anchor="middle" dominant-baseline="middle" class="text-[8px] pointer-events-none" fill="#000000">
+                                            {{ formatShortTime(roomTask) }}
+                                        </text>
+                                    }
+                                }
+                            }
+                        }
+
+                        @if (selectedRoom()) {
+                            @let selectedMeta = roomMetadata().get(selectedRoom()!.id);
+                            @if (selectedMeta) {
+                                <polygon [attr.points]="selectedMeta.polygonString" fill="transparent" stroke="#ef4444" stroke-width="4" opacity="0.9" class="pointer-events-none" />
+                            }
+                        }
+
+                        @if (nextRoomOnCurrentFloor() && nextRoomOnCurrentFloor()!.id !== selectedRoom()?.id) {
+                            @let nextMeta = roomMetadata().get(nextRoomOnCurrentFloor()!.id);
+                            @if (nextMeta) {
+                                <polygon [attr.points]="nextMeta.polygonString" fill="transparent" stroke="#ef4444" stroke-width="4" opacity="0.9" class="pointer-events-none" />
+                            }
+                        }
+
+                        @for (staircase of currentFloorStaircases(); track staircase.id) {
+                            <g>
+                                <circle [attr.cx]="staircase.x" [attr.cy]="staircase.y" r="20" fill="#fef3c7" stroke="#d97706" stroke-width="2" opacity="0.9" />
+                                <line [attr.x1]="staircase.x - 10" [attr.y1]="staircase.y - 8" [attr.x2]="staircase.x + 10" [attr.y2]="staircase.y - 8" stroke="#92400e" stroke-width="2" />
+                                <line [attr.x1]="staircase.x - 10" [attr.y1]="staircase.y" [attr.x2]="staircase.x + 10" [attr.y2]="staircase.y" stroke="#92400e" stroke-width="2" />
+                                <line [attr.x1]="staircase.x - 10" [attr.y1]="staircase.y + 8" [attr.x2]="staircase.x + 10" [attr.y2]="staircase.y + 8" stroke="#92400e" stroke-width="2" />
+                            </g>
+                        }
+
+                        <!-- Navigation arrows (same-floor navigation) -->
+                        @for (stepData of navigationStepsWithRooms(); track stepData.stepIndex) {
+                            @if (!stepData.isCrossFloor && stepData.arrowPath) {
+                                <path [attr.d]="stepData.arrowPath" stroke="#b91010" stroke-width="4" fill="none" opacity="0.8" marker-end="url(#nav-arrowhead)" stroke-dasharray="10 5" class="navigation-arrow pointer-events-none" />
+                            }
+                        }
+
+                        @for (stepData of navigationStepsWithRooms(); track stepData.stepIndex) {
+                            @if (stepData.isCrossFloor && stepData.fromFloor === selectedFloor() && stepData.arrowPath) {
+                                <path [attr.d]="stepData.arrowPath" stroke="#d97706" stroke-width="4" fill="none" opacity="0.8" marker-end="url(#nav-arrowhead)" stroke-dasharray="10 5" class="navigation-arrow pointer-events-none" />
+                            }
+                        }
+
+                        @for (stepData of navigationStepsWithRooms(); track stepData.stepIndex) {
+                            @if (stepData.isCrossFloor && stepData.toFloor === selectedFloor() && stepData.staircaseToRoomArrowPath) {
+                                <path
+                                    [attr.d]="stepData.staircaseToRoomArrowPath"
+                                    stroke="#d97706"
+                                    stroke-width="4"
+                                    fill="none"
+                                    opacity="0.8"
+                                    marker-end="url(#nav-arrowhead)"
+                                    stroke-dasharray="10 5"
+                                    class="navigation-arrow pointer-events-none" />
+                            }
+                        }
+
+                        @for (stepData of navigationStepsWithRooms(); track stepData.stepIndex) {
+                            @if (stepData.isCrossFloor && stepData.fromFloor === selectedFloor() && stepData.targetStaircase) {
+                                <g [attr.transform]="'translate(' + stepData.targetStaircase.x + ',' + stepData.targetStaircase.y + ')'">
+                                    <circle r="35" fill="#f59e0b" opacity="0.9" class="cross-floor-pulse" />
+                                    <foreignObject x="-12" y="-20" width="24" height="24">
+                                        <mat-icon class="h-4 w-4 text-white! flex items-center justify-center pointer-events-none">
+                                            {{ stepData.toFloor > stepData.fromFloor ? 'arrow_upward' : 'arrow_downward' }}
+                                        </mat-icon>
+                                    </foreignObject>
+                                    <text y="12" text-anchor="middle" fill="white" font-size="14" font-weight="bold" class="pointer-events-none">Floor {{ stepData.toFloor }}</text>
+                                </g>
+                            }
+                        }
+
+                        @for (stepData of navigationStepsWithRooms(); track stepData.stepIndex) {
+                            @if (stepData.isCrossFloor && stepData.toFloor === selectedFloor() && stepData.sourceStaircase) {
+                                <g [attr.transform]="'translate(' + stepData.sourceStaircase.x + ',' + stepData.sourceStaircase.y + ')'">
+                                    <circle r="35" fill="#22c55e" opacity="0.9" class="cross-floor-pulse" />
+                                    <foreignObject x="-12" y="-12" width="24" height="24">
+                                        <mat-icon class="h-4 w-4 text-white! flex items-center justify-center pointer-events-none">
+                                            {{ stepData.toFloor > stepData.fromFloor ? 'arrow_upward' : 'arrow_downward' }}
+                                        </mat-icon>
+                                    </foreignObject>
+                                </g>
+                            }
+                        }
+                    </g>
+                </svg>
+            }
+
+            <div class="absolute top-4 right-4 z-20">
+                <div class="relative">
+                    <select
+                        [ngModel]="selectedFloor()"
+                        (ngModelChange)="onFloorChange($event)"
+                        class="px-4 py-2 pr-10 bg-white border-2 border-neutral-200 rounded-xl appearance-none cursor-pointer focus:outline-none focus:border-green-600 transition-colors text-body font-semibold shadow-lg">
+                        @for (floor of floors(); track floor) {
+                            <option [value]="floor">Floor {{ floor }}</option>
+                        }
+                    </select>
+                    <mat-icon class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"> expand_more </mat-icon>
+                </div>
+            </div>
+
+            <div class="absolute top-4 left-4 z-20">
+                <button
+                    type="button"
+                    (click)="toggleLegend()"
+                    class="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg flex items-center gap-2 hover:bg-white transition-colors"
+                    [attr.aria-expanded]="isLegendExpanded()"
+                    aria-label="Toggle legend">
+                    <mat-icon class="text-neutral-600 text-lg">palette</mat-icon>
+                    <span class="text-xs font-medium text-neutral-700">Legend</span>
+                    <mat-icon class="text-neutral-400 text-sm transition-transform duration-200" [class.rotate-180]="isLegendExpanded()"> expand_more </mat-icon>
+                </button>
+
+                <div
+                    class="overflow-hidden transition-all duration-300 ease-in-out"
+                    [class.max-h-0]="!isLegendExpanded()"
+                    [class.max-h-48]="isLegendExpanded()"
+                    [class.opacity-0]="!isLegendExpanded()"
+                    [class.opacity-100]="isLegendExpanded()"
+                    [class.mt-2]="isLegendExpanded()">
+                    <div class="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-lg">
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                            <div class="flex items-center gap-1">
+                                <div class="w-3 h-3 rounded" style="background-color: #10b981"></div>
+                                <span class="text-neutral-700">Available</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-3 h-3 rounded" style="background-color: #3b82f6"></div>
+                                <span class="text-neutral-700">Occupied</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-3 h-3 rounded" style="background-color: #f59e0b"></div>
+                                <span class="text-neutral-700">Dirty</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-3 h-3 rounded" style="background-color: #8b5cf6"></div>
+                                <span class="text-neutral-700">Cleaning</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-3 h-3 rounded" style="background-color: #ef4444"></div>
+                                <span class="text-neutral-700">Out of Order</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-3 h-3 rounded-full" style="background-color: #fef3c7; border: 1px solid #d97706"></div>
+                                <span class="text-neutral-700">Stairs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (nextRoomInSequence()) {
+                <button
+                    type="button"
+                    (click)="navigateToNextRoom()"
+                    [class]="
+                        selectedRoom()
+                            ? 'absolute bottom-[240px] left-4 z-20 bg-green-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all'
+                            : 'absolute bottom-4 left-4 z-20 bg-green-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 hover:bg-green-700 active:scale-95 transition-all'
+                    "
+                    title="Go to next room">
+                    <mat-icon>arrow_forward</mat-icon>
+                    <span class="font-semibold">Room {{ nextRoomInSequence() }}</span>
+                </button>
+            }
+
+            @if (needsRecenter()) {
+                <button
+                    type="button"
+                    (click)="recenterMap()"
+                    [class]="
+                        selectedRoom()
+                            ? 'absolute bottom-[240px] right-4 z-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-neutral-50 active:scale-95 transition-all'
+                            : 'absolute bottom-4 right-4 z-20 w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-neutral-50 active:scale-95 transition-all'
+                    "
+                    title="Recenter map">
+                    <mat-icon class="text-green-600">my_location</mat-icon>
+                </button>
+            }
+
+            @if (selectedRoom()) {
+                <div class="absolute bottom-0 left-0 right-0 z-30 animate-slide-up">
+                    <div class="bg-white rounded-t-3xl shadow-2xl p-4 sm:p-6 mx-auto md:max-w-md max-h-[50dvh] sm:max-h-[60dvh] flex flex-col">
+                        <div class="flex items-center justify-between mb-4 shrink-0">
+                            <h2 class="text-heading-3 text-neutral-900">Room {{ selectedRoom()!.number }}</h2>
+                            <button type="button" (click)="closeRoomDetails()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200 transition-colors">
+                                <mat-icon class="text-neutral-600">close</mat-icon>
+                            </button>
+                        </div>
+
+                        <div class="overflow-y-auto flex-1 hide-scrollbar">
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" [ngClass]="getStatusColorClass(selectedRoom()!.status)">
+                                    <mat-icon class="text-white! text-base">
+                                        @switch (selectedRoom()!.status) {
+                                            @case (RoomStatus.DIRTY) {
+                                                warning
+                                            }
+                                            @case (RoomStatus.CLEANING) {
+                                                cleaning_services
+                                            }
+                                            @case (RoomStatus.OUT_OF_ORDER) {
+                                                build
+                                            }
+                                            @case (RoomStatus.PERMANENTLY_INACTIVE) {
+                                                block
+                                            }
+                                            @case (RoomStatus.OCCUPIED) {
+                                                person
+                                            }
+                                            @case (RoomStatus.AVAILABLE) {
+                                                door_front
+                                            }
+                                            @default {
+                                                check_circle
+                                            }
+                                        }
+                                    </mat-icon>
+                                    <span class="text-white font-semibold text-sm">{{ getStatusLabel(selectedRoom()!.status) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-0 mb-4">
+                                <div class="flex items-center gap-3 py-3 border-b border-neutral-200">
+                                    <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                                        <mat-icon class="text-green-600">location_on</mat-icon>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-xs text-neutral-500 mb-0.5">Floor</p>
+                                        <p class="text-body font-semibold text-neutral-900"> Floor {{ selectedRoom()!.floor }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3 py-3 border-b border-neutral-200">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                                        <mat-icon class="text-blue-600">hotel</mat-icon>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-xs text-neutral-500 mb-0.5">Room Type</p>
+                                        <p class="text-body font-semibold text-neutral-900">{{ getSelectedRoomTypeName() }}</p>
+                                    </div>
+                                </div>
+
+                                @if (selectedRoomTask()) {
+                                    <div class="flex items-center gap-3 py-3">
+                                        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                                            <mat-icon class="text-amber-600">schedule</mat-icon>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs text-neutral-500 mb-0.5">Scheduled Time</p>
+                                            <p class="text-body font-semibold text-neutral-900">{{ formatScheduledTime(selectedRoomTask()!) }}</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (hasActiveCleaningTask()) {
+                                <div class="mb-4 p-3 bg-violet-50 border border-violet-200 rounded-lg">
+                                    <div class="flex items-center gap-2">
+                                        <mat-icon class="text-violet-600">cleaning_services</mat-icon>
+                                        <p class="text-sm text-violet-700 font-medium">{{ getCleaningStatusText() }}</p>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (cleaningError()) {
+                                <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <div class="flex items-center gap-2">
+                                        <mat-icon class="text-red-600 text-lg">error_outline</mat-icon>
+                                        <p class="text-sm text-red-700">{{ cleaningError()!.message }}</p>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (selectedRoom() && !isSelectedRoomAssigned() && !hasActiveCleaningTask()) {
+                                <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div class="flex items-start gap-2">
+                                        <mat-icon class="text-blue-600 text-lg">info</mat-icon>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-blue-700 font-medium">Room Not Assigned</p>
+                                            <p class="text-xs text-blue-600 mt-1">This room is not in your daily cleaning schedule. You can still report issues.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="space-y-3">
+                                @if (canStartCleaning()) {
+                                    <button
+                                        type="button"
+                                        (click)="onStartCleaning()"
+                                        [disabled]="cleaningLoading()"
+                                        class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                        @if (cleaningLoading()) {
+                                            <mat-icon class="animate-spin">refresh</mat-icon>
+                                        } @else {
+                                            <mat-icon>play_arrow</mat-icon>
+                                        }
+                                        <span>Start Cleaning</span>
+                                    </button>
+                                }
+
+                                @if (canFinishCleaning()) {
+                                    <button
+                                        type="button"
+                                        (click)="onFinishCleaning()"
+                                        [disabled]="cleaningLoading()"
+                                        class="w-full px-6 py-3 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                        @if (cleaningLoading()) {
+                                            <mat-icon class="animate-spin">refresh</mat-icon>
+                                        } @else {
+                                            <mat-icon>check_circle</mat-icon>
+                                        }
+                                        <span>Finish Cleaning</span>
+                                    </button>
+                                }
+
+                                @if (canStartCleaning()) {
+                                    <button
+                                        type="button"
+                                        (click)="onSkipCleaning()"
+                                        [disabled]="cleaningLoading()"
+                                        class="w-full px-6 py-3 bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                        @if (cleaningLoading()) {
+                                            <mat-icon class="animate-spin">refresh</mat-icon>
+                                        } @else {
+                                            <mat-icon>do_not_disturb</mat-icon>
+                                        }
+                                        <span>Skip - Do Not Disturb</span>
+                                    </button>
+                                }
+
+                                <button
+                                    type="button"
+                                    (click)="onReportIssue()"
+                                    class="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                                    <mat-icon>build</mat-icon>
+                                    <span>Report Issue</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    (click)="canReportMinibar() && !minibarEligibilityLoading() ? onReportMinibar() : onDisabledMinibarClick()"
+                                    [title]="minibarDisabledReason()"
+                                    [class]="
+                                        canReportMinibar() && !minibarEligibilityLoading()
+                                            ? 'w-full px-6 py-3 bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors'
+                                            : 'w-full px-6 py-3 bg-gray-400 text-white font-semibold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed'
+                                    ">
+                                    @if (minibarEligibilityLoading()) {
+                                        <mat-icon class="animate-spin">refresh</mat-icon>
+                                    } @else {
+                                        <mat-icon>local_bar</mat-icon>
+                                    }
+                                    <span>Report Minibar</span>
+                                </button>
+
+                                @if (!canReportMinibarForRoom() && !minibarEligibilityLoading()) {
+                                    <p class="text-xs text-gray-500 text-center mt-1">No active or recent booking for minibar reporting</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,5 @@
+tr.fixfirstcol > th:first-child,
+tr.fixfirstcol > td:first-child {
+    position: sticky;
+    left: 0;
+}

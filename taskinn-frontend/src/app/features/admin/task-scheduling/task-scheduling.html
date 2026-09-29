@@ -1,0 +1,141 @@
+<div class="min-h-screen mx-auto p-8 bg-neutral-50">
+    <div>
+        <a routerLink="/admin/user-parameters">
+            <mat-icon>settings</mat-icon>
+        </a>
+    </div>
+
+    <div class="mb-8">
+        <tinn-page-header title="Task Cleaning Schedule" subtitle="Manage daily cleaning task assignments for rooms and employees" icon="cleaning_services" />
+    </div>
+
+    <!-- Date Selection and Mode Toggle -->
+    <div class="flex bg-white rounded-xs shadow-sm border border-neutral-200 p-6 mb-8">
+        <div class="flex gap-2">
+            <button [class]="viewMode === 'list' ? 'brand-primary-button' : 'brand-neutral-button'" (click)="setViewMode('list')" [attr.disabled]="loading() || null">
+                <mat-icon class="text-sm">list</mat-icon>
+                <span class="text-sm">View</span>
+            </button>
+            <button [class]="viewMode === 'optimize' ? 'brand-primary-button' : 'brand-neutral-button'" (click)="setViewMode('optimize')" [attr.disabled]="loading() || null">
+                <mat-icon class="text-sm">auto_fix_high</mat-icon>
+                <span class="text-sm">Optimize</span>
+            </button>
+        </div>
+
+        @if (viewMode === 'list') {
+            <!-- Date Navigation -->
+            <button class="brand-neutral-button ml-3 mr-1" (click)="stepDay(-1)" [attr.disabled]="loading() || null">
+                <mat-icon class="text-sm">keyboard_arrow_left</mat-icon>
+            </button>
+
+            <input class="form-field text-sm w-20 h-10" type="number" min="2024" max="2999" [attr.disabled]="loading() || null" [(ngModel)]="year" (change)="onDateChange()" />
+
+            <select class="form-field ml-2 text-sm h-10" [attr.disabled]="loading() || null" [(ngModel)]="month" (change)="onDateChange()">
+                <option value="1">Jan</option>
+                <option value="2">Feb</option>
+                <option value="3">Mar</option>
+                <option value="4">Apr</option>
+                <option value="5">May</option>
+                <option value="6">Jun</option>
+                <option value="7">Jul</option>
+                <option value="8">Aug</option>
+                <option value="9">Sep</option>
+                <option value="10">Oct</option>
+                <option value="11">Nov</option>
+                <option value="12">Dec</option>
+            </select>
+
+            <input class="form-field ml-2 text-sm w-16 h-10" type="number" min="1" max="31" [attr.disabled]="loading() || null" [(ngModel)]="day" (change)="onDateChange()" />
+
+            <button class="brand-neutral-button ml-1" (click)="stepDay(1)" [attr.disabled]="loading() || null">
+                <mat-icon class="text-sm">keyboard_arrow_right</mat-icon>
+            </button>
+
+            <div class="flex-grow"></div>
+
+            @if (editing) {
+                <button class="brand-primary-button ml-3" (click)="saveSchedule()" [attr.disabled]="loading() || !canSaveSchedule() || null">
+                    <mat-icon class="text-sm">save</mat-icon>
+                    <span class="text-sm">Save</span>
+                </button>
+                <button class="brand-neutral-button ml-2" (click)="editing = false; loadScheduleForDay()" [attr.disabled]="loading() || null">
+                    <mat-icon class="text-sm">cancel</mat-icon>
+                    <span class="text-sm">Cancel</span>
+                </button>
+            } @else {
+                <button class="brand-primary-button ml-3" (click)="editing = true" [attr.disabled]="loading() || null">
+                    <mat-icon class="text-sm">edit</mat-icon>
+                    <span class="text-sm">Edit</span>
+                </button>
+            }
+        }
+    </div>
+
+    @if (viewMode === 'list') {
+        <!-- Validation Warning -->
+        @if (editing && !canSaveSchedule()) {
+            <div class="bg-red-50 border border-red-200 rounded-xs p-4 mb-6 flex items-center gap-3">
+                <mat-icon class="text-red-600">warning</mat-icon>
+                <span class="text-body text-red-800">All tasks must have a task type selected before saving</span>
+            </div>
+        }
+
+        <!-- Task Assignments List -->
+        <tinn-task-assignments-table
+            [assignments]="assignments"
+            [rooms]="rooms"
+            [schedulableEmployees]="schedulableEmployees"
+            [editing]="editing"
+            [loading]="loading()"
+            [selectedDate]="selectedDate"
+            (addAssignment)="addNewAssignment()"
+            (editAssignment)="editAssignment($event)"
+            (saveAssignment)="saveAssignment($event)"
+            (removeAssignment)="removeAssignment($event)"
+            (assignmentTimeChange)="onAssignmentTimeChange($event.assignment, $event.field, $event.value)" />
+    }
+
+    @if (viewMode === 'optimize') {
+        <!-- Optimization Mode -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Employee Selection -->
+            <tinn-employee-selector
+                [employees]="schedulableEmployees"
+                [selectedEmployeeIds]="selectedEmployeeIds"
+                [loading]="loading()"
+                (employeeToggled)="toggleEmployeeSelection($event)"
+                (selectAll)="selectAllEmployees()"
+                (deselectAll)="deselectAllEmployees()" />
+
+            <!-- Room Selection -->
+            <tinn-room-selector
+                [rooms]="rooms"
+                [selectedRoomIds]="selectedRoomIds"
+                [roomConstraints]="roomConstraints"
+                [loading]="loading()"
+                [year]="year"
+                [month]="month"
+                [day]="day"
+                (roomToggled)="toggleRoomSelection($event)"
+                (selectAll)="selectAllRooms()"
+                (deselectAll)="deselectAllRooms()" />
+        </div>
+
+        <!-- Optimization Parameters -->
+        <tinn-optimization-parameters
+            [optimizationStartTime]="optimizationStartTime"
+            [loading]="loading()"
+            [canGenerate]="selectedEmployeeIds.size > 0 && selectedRoomIds.size > 0"
+            (optimizationStartTimeChange)="optimizationStartTime = $event"
+            (generateSchedule)="generateOptimizedSchedule()" />
+    }
+
+    @if (loading()) {
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-xs p-6 flex items-center gap-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+                <span class="text-body text-neutral-800">Loading...</span>
+            </div>
+        </div>
+    }
+</div>

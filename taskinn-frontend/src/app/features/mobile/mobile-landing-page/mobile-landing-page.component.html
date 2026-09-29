@@ -1,0 +1,74 @@
+<div class="min-h-screen bg-linear-to-b from-neutral-100 to-white flex flex-col md:max-w-[480px] md:mx-auto md:shadow-[0_0_40px_rgba(0,0,0,0.1)]">
+    <tinn-mobile-header class="sticky top-0" [title]="'TaskInn Mobile'">
+        <button
+            header-actions
+            type="button"
+            class="flex items-center justify-center background-transparent border-none text-white cursor-pointer rounded-xl transition-colors hover:bg-white/10 active:bg-white/20 p-1"
+            (click)="onLogout()"
+            aria-label="Logout">
+            <mat-icon class="text-2xl w-6 h-6">logout</mat-icon>
+        </button>
+    </tinn-mobile-header>
+
+    <div class="flex-1 px-4 py-6 overflow-y-auto">
+        <!-- Welcome Section -->
+        <div class="text-center py-8 mb-6">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center bg-linear-to-br from-green-600 to-green-500 shadow-[0_4px_16px_rgba(22,163,74,0.3)]">
+                <mat-icon class="text-white!">phone_android</mat-icon>
+            </div>
+
+            <h2 class="text-2xl font-bold text-neutral-900 mb-2"> Welcome to the Mobile Portal </h2>
+            <p class="text-[0.95rem] text-neutral-500 px-4"> Quick access to essential hotel management tools </p>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <button
+                type="button"
+                (click)="navigateToTaskList()"
+                class="w-full text-left cursor-pointer bg-white rounded-2xl p-6 flex items-center gap-4 shadow-md transition-all duration-200 border-2 border-transparent active:scale-[0.98] active:shadow-sm hover:shadow-[0_4px_16px_rgba(34,197,94,0.15)] hover:border-green-600">
+                <div class="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center bg-linear-to-br from-green-500 to-green-600 shadow-[0_2px_8px_rgba(34,197,94,0.3)]">
+                    <mat-icon class="text-white!">checklist</mat-icon>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-semibold text-neutral-900 mb-1">Task List</h3>
+                    <p class="text-sm text-neutral-500 leading-[1.4]"> View your assigned tasks and track progress </p>
+                </div>
+
+                <mat-icon class="shrink-0 text-green-600! w-[1.125rem]! h-[1.125rem]! text-[1.125rem]!"> arrow_forward_ios </mat-icon>
+            </button>
+
+            <button
+                type="button"
+                (click)="navigateToMap()"
+                class="w-full text-left cursor-pointer bg-white rounded-2xl p-6 flex items-center gap-4 shadow-md transition-all duration-200 border-2 border-transparent active:scale-[0.98] active:shadow-sm hover:shadow-[0_4px_16px_rgba(59,130,246,0.15)] hover:border-blue-600">
+                <div class="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center bg-linear-to-br from-blue-500 to-blue-600 shadow-[0_2px_8px_rgba(59,130,246,0.3)]">
+                    <mat-icon class="text-white!">map</mat-icon>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-semibold text-neutral-900 mb-1">Floor Plan</h3>
+                    <p class="text-sm text-neutral-500 leading-[1.4]"> View floor plans and report issues from the map </p>
+                </div>
+
+                <mat-icon class="shrink-0 text-blue-600! w-[1.125rem]! h-[1.125rem]! text-[1.125rem]!"> arrow_forward_ios </mat-icon>
+            </button>
+
+            <button
+                type="button"
+                (click)="navigateToReport()"
+                class="w-full text-left cursor-pointer bg-white rounded-2xl p-6 flex items-center gap-4 shadow-md transition-all duration-200 border-2 border-transparent active:scale-[0.98] active:shadow-sm hover:shadow-[0_4px_16px_rgba(22,163,74,0.15)] hover:border-green-600">
+                <div class="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center bg-linear-to-br from-amber-400 to-amber-500 shadow-[0_2px_8px_rgba(245,158,11,0.3)]">
+                    <mat-icon class="text-white!">build</mat-icon>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-semibold text-neutral-900 mb-1">Report Issue</h3>
+                    <p class="text-sm text-neutral-500 leading-[1.4]"> Quickly report maintenance issues for hotel rooms </p>
+                </div>
+
+                <mat-icon class="shrink-0 text-amber-500! w-[1.125rem]! h-[1.125rem]! text-[1.125rem]!"> arrow_forward_ios </mat-icon>
+            </button>
+        </div>
+    </div>
+</div>

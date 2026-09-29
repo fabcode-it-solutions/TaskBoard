@@ -1,0 +1,29 @@
+<div class="bg-white rounded-xs w-full">
+    <!-- Header -->
+    <div class="flex items-center gap-4 p-6 border-b border-neutral-200">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full" [class.bg-error-100]="data.danger" [class.bg-brand-primary-100]="!data.danger">
+            <mat-icon class="w-6 h-6 flex items-center justify-center" [class.text-error-600]="data.danger" [class.text-brand-primary]="!data.danger">
+                {{ data.danger ? 'warning' : 'help_outline' }}
+            </mat-icon>
+        </div>
+        <h2 class="text-xl font-semibold text-neutral-800">{{ data.title }}</h2>
+    </div>
+
+    <!-- Message -->
+    <div class="p-6">
+        <p class="text-neutral-700">{{ data.message }}</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-3 p-6 border-t border-neutral-200">
+        <button type="button" class="brand-neutral-button" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+            {{ cancelText }}
+        </button>
+
+        <button type="button" [ngClass]="data.danger ? 'brand-error-button' : 'brand-primary-button'" (click)="onConfirm()">
+            <mat-icon>{{ data.danger ? 'delete' : 'check' }}</mat-icon>
+            {{ confirmText }}
+        </button>
+    </div>
+</div>

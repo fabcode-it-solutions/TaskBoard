@@ -1,0 +1,88 @@
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="bg-brand-primary h-14 flex items-center px-6 gap-3">
+        <mat-icon class="text-white!">{{ isCreateMode ? 'add_circle' : 'edit' }}</mat-icon>
+        <h2 class="text-white text-xl font-semibold">{{ dialogTitle }}</h2>
+    </div>
+
+    <form [formGroup]="roomTypeForm" (ngSubmit)="onSubmit()" class="p-6">
+        <div class="flex flex-col gap-4">
+            <!-- Name -->
+            <div>
+                <label class="form-field-label">Name<tinn-mandatory-mark /></label>
+                <input class="form-field" required formControlName="name" placeholder="e.g., Deluxe Suite" />
+                @if (roomTypeForm.get('name')?.hasError('required') && roomTypeForm.get('name')?.touched) {
+                    <span class="form-field-error">Name is required</span>
+                }
+                @if (roomTypeForm.get('name')?.hasError('maxlength') && roomTypeForm.get('name')?.touched) {
+                    <span class="form-field-error">Name must not exceed 100 characters</span>
+                }
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="form-field-label">Description</label>
+                <textarea class="form-field !h-auto py-3" formControlName="description" placeholder="Describe the room type..." rows="4"></textarea>
+                @if (roomTypeForm.get('description')?.hasError('maxlength') && roomTypeForm.get('description')?.touched) {
+                    <span class="form-field-error">Description must not exceed 500 characters</span>
+                }
+            </div>
+
+            <!-- Capacity and Base Price Row -->
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="form-field-label">Capacity<tinn-mandatory-mark /></label>
+                    <input class="form-field" type="number" required formControlName="capacity" min="1" max="10" placeholder="1-10" />
+                    @if (roomTypeForm.get('capacity')?.hasError('required') && roomTypeForm.get('capacity')?.touched) {
+                        <span class="form-field-error">Capacity is required</span>
+                    }
+                    @if ((roomTypeForm.get('capacity')?.hasError('min') || roomTypeForm.get('capacity')?.hasError('max')) && roomTypeForm.get('capacity')?.touched) {
+                        <span class="form-field-error">Capacity must be between 1 and 10</span>
+                    }
+                </div>
+
+                <div class="flex-1">
+                    <label class="form-field-label">Base Price (€)<tinn-mandatory-mark /></label>
+                    <input class="form-field" type="number" required formControlName="basePrice" min="0.01" step="0.01" placeholder="0.00" />
+                    @if (roomTypeForm.get('basePrice')?.hasError('required') && roomTypeForm.get('basePrice')?.touched) {
+                        <span class="form-field-error">Base price is required</span>
+                    }
+                    @if (roomTypeForm.get('basePrice')?.hasError('min') && roomTypeForm.get('basePrice')?.touched) {
+                        <span class="form-field-error">Base price must be positive</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Bed Counts Row -->
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="form-field-label">Single Beds</label>
+                    <input class="form-field" type="number" formControlName="singleBed" min="0" max="5" placeholder="0" />
+                    @if ((roomTypeForm.get('singleBed')?.hasError('min') || roomTypeForm.get('singleBed')?.hasError('max')) && roomTypeForm.get('singleBed')?.touched) {
+                        <span class="form-field-error">Single beds must be between 0 and 5</span>
+                    }
+                </div>
+
+                <div class="flex-1">
+                    <label class="form-field-label">Double Beds</label>
+                    <input class="form-field" type="number" formControlName="doubleBed" min="0" max="5" placeholder="0" />
+                    @if ((roomTypeForm.get('doubleBed')?.hasError('min') || roomTypeForm.get('doubleBed')?.hasError('max')) && roomTypeForm.get('doubleBed')?.touched) {
+                        <span class="form-field-error">Double beds must be between 0 and 5</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between gap-3 mt-6 pt-4 border-t border-neutral-200">
+            <button type="button" class="brand-neutral-button" (click)="onCancel()">
+                <mat-icon>cancel</mat-icon>
+                Cancel
+            </button>
+
+            <button type="submit" [disabled]="loading || !roomTypeForm.valid" class="brand-primary-button">
+                <mat-icon>{{ isCreateMode ? 'add_circle' : 'save' }}</mat-icon>
+                {{ isCreateMode ? 'Create Room Type' : 'Save Changes' }}
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,17 @@
+<div class="bg-white border border-neutral-200 rounded-xs p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+            <p class="text-subtext-color text-caption mb-1">{{ title }}</p>
+            @if (isLoading) {
+                <div class="h-10 w-24 bg-neutral-100 rounded animate-pulse"></div>
+            } @else {
+                <h2 class="text-default-font text-heading-1 font-bold" [ngClass]="valueColorClass">
+                    {{ value !== null ? (value | number: '1.0-2') : '—' }}<span class="text-xl">{{ suffix }}</span>
+                </h2>
+            }
+        </div>
+        <div class="w-12 h-12 rounded-xs flex items-center justify-center" [ngClass]="iconColorClass">
+            <mat-icon>{{ icon }}</mat-icon>
+        </div>
+    </div>
+</div>

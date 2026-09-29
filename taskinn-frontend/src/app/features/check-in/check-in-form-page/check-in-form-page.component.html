@@ -1,0 +1,128 @@
+<div class="h-screen flex justify-center p-8">
+    <div class="w-4xl">
+        <tinn-page-header [title]="'Guest Details'" [subtitle]="'Input the personal data for each guest'" [icon]="'person'"></tinn-page-header>
+
+        @if (criticalError) {
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {{ criticalError }}
+            </div>
+        } @else if (loading()) {
+            <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl p-8">
+                <div class="flex justify-center items-center">
+                    <div class="text-neutral-500">Loading guest information...</div>
+                </div>
+            </div>
+        } @else if (isInitialized && guestForms.length > 0) {
+            <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+                <div class="bg-brand-primary rounded-t-lg flex items-center p-4 gap-3">
+                    <mat-icon class="text-white!">group</mat-icon>
+                    <div class="text-white text-lg">Guest Data Entry</div>
+                </div>
+                <div class="flex flex-col m-4 gap-4">
+                    <!-- Guest Chips -->
+                    <div class="flex flex-col gap-2 mb-4">
+                        <label class="form-field-label">Select Guest<tinn-mandatory-mark /></label>
+                        <div class="flex flex-wrap gap-4 justify-center">
+                            @for (opt of guestDropdownOptions; track opt.value) {
+                                <div
+                                    [ngClass]="selectedGuestIndex === opt.value ? 'bg-brand-primary text-white' : 'bg-neutral-200 text-neutral-600'"
+                                    (click)="onGuestChange(opt.value.toString())"
+                                    class="cursor-pointer px-3 py-2 rounded-4xl">
+                                    {{ opt.label }}
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Vertical Single Guest Form -->
+                    <form [formGroup]="currentGuestForm" class="flex flex-col gap-4">
+                        <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm flex flex-col gap-4 px-8 py-4">
+                            <div class="flex flex-col mb-2">
+                                <label class="form-field-label">First Name<tinn-mandatory-mark /></label>
+                                <input type="text" class="form-field bg-neutral-100!" formControlName="firstName" required />
+                            </div>
+
+                            <div class="flex flex-col mb-2">
+                                <label class="form-field-label">Last Name<tinn-mandatory-mark /></label>
+                                <input type="text" class="form-field bg-neutral-100!" formControlName="lastName" required />
+                            </div>
+
+                            <div class="flex flex-col mb-2">
+                                <label class="form-field-label">Date of Birth<tinn-mandatory-mark /></label>
+                                <input type="date" class="form-field bg-neutral-100!" formControlName="dateOfBirth" required />
+                            </div>
+
+                            @if (isFirstGuest()) {
+                                <div class="flex flex-col mb-2">
+                                    <label class="form-field-label">Email<tinn-mandatory-mark /></label>
+                                    <input type="email" class="form-field bg-neutral-100!" formControlName="email" required />
+                                    @if (currentGuestForm.get('email')?.hasError('required') && currentGuestForm.get('email')?.touched) {
+                                        <span class="form-field-error">Email is required for the first guest</span>
+                                    }
+                                    @if (currentGuestForm.get('email')?.hasError('email') && currentGuestForm.get('email')?.touched) {
+                                        <span class="form-field-error">Please enter a valid email address</span>
+                                    }
+                                </div>
+
+                                <div class="flex flex-col mb-2">
+                                    <label class="form-field-label">Phone Number<tinn-mandatory-mark /></label>
+                                    <input type="text" class="form-field bg-neutral-100!" formControlName="phoneNumber" required />
+                                    @if (currentGuestForm.get('phoneNumber')?.hasError('required') && currentGuestForm.get('phoneNumber')?.touched) {
+                                        <span class="form-field-error">Phone number is required for the first guest</span>
+                                    }
+                                </div>
+                            }
+
+                            <div class="flex flex-col mb-2">
+                                <label class="form-field-label">ID Image <tinn-mandatory-mark /></label>
+                                <input type="file" accept="image/*" (change)="onFileChange($event)" #fileInput class="hidden" />
+
+                                <button type="button" class="brand-neutral-button w-fit" (click)="fileInput.click()">
+                                    <mat-icon>upload_file</mat-icon>
+                                    Choose File
+                                </button>
+
+                                @if (guestData[selectedGuestIndex]?.idImageBase64) {
+                                    <div class="mt-2 w-full flex justify-center">
+                                        <img [src]="'data:image/png;base64,' + guestData[selectedGuestIndex].idImageBase64" alt="ID Image Preview" class="max-w-xs max-h-48 rounded border border-neutral-300" />
+                                    </div>
+                                }
+                                @if (guestData[selectedGuestIndex]?.idImageFile) {
+                                    <div class="mt-2 text-sm text-neutral-600 w-full flex justify-center">
+                                        <mat-icon class="text-green-600 align-middle mr-1" style="font-size: 18px; width: 18px; height: 18px">check_circle</mat-icon>
+                                        <span class="align-middle">{{ truncateFilename(guestData[selectedGuestIndex].idImageFile!.name) }}</span>
+                                    </div>
+                                }
+                                @if (fileErrors[selectedGuestIndex]) {
+                                    <div class="form-field-error">
+                                        {{ fileErrors[selectedGuestIndex] }}
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="h-0.25 bg-neutral-200"></div>
+
+                        @if (submissionError) {
+                            <div class="form-field-error mb-2">{{ submissionError }}</div>
+                        }
+                        @if (formSubmitted) {
+                            <div class="mb-2 text-green-600">Submission successful!</div>
+                        }
+
+                        <div class="flex justify-between gap-4">
+                            <button type="button" class="brand-neutral-button" (click)="onClickBack()">
+                                <mat-icon>arrow_back</mat-icon>
+                                Back
+                            </button>
+                            <button type="button" [disabled]="!formIsValid()" class="brand-primary-button" (click)="onSubmit()">
+                                <mat-icon>arrow_forward</mat-icon>
+                                Submit Check-in
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

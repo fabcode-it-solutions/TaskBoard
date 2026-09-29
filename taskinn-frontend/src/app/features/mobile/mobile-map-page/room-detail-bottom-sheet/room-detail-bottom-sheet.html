@@ -1,0 +1,52 @@
+<div class="p-6 max-w-md mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-heading-3 text-neutral-900">Room {{ data.room.number }}</h2>
+        <button type="button" (click)="close()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-neutral-100 active:bg-neutral-200 transition-colors">
+            <mat-icon class="text-neutral-600">close</mat-icon>
+        </button>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="mb-6">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full" [ngClass]="getStatusColor(data.room.status)">
+            <mat-icon class="text-white text-lg">circle</mat-icon>
+            <span class="text-white font-semibold text-sm">{{ getStatusLabel(data.room.status) }}</span>
+        </div>
+    </div>
+
+    <!-- Room Details -->
+    <div class="space-y-0">
+        <div class="flex items-center gap-3 py-3 border-b border-neutral-200">
+            <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+                <mat-icon class="text-green-600">location_on</mat-icon>
+            </div>
+            <div class="flex-1">
+                <p class="text-xs text-neutral-500 mb-0.5">Floor</p>
+                <p class="text-body font-semibold text-neutral-900">Floor {{ data.room.floor }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 py-3" [ngClass]="data.roomTypeCapacity > 0 ? 'border-b border-neutral-200' : ''">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                <mat-icon class="text-blue-600">hotel</mat-icon>
+            </div>
+            <div class="flex-1">
+                <p class="text-xs text-neutral-500 mb-0.5">Room Type</p>
+                <p class="text-body font-semibold text-neutral-900">{{ data.roomTypeName }}</p>
+            </div>
+        </div>
+
+        @if (data.roomTypeCapacity > 0) {
+            <div class="flex items-center gap-3 py-3">
+                <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                    <mat-icon class="text-purple-600">people</mat-icon>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs text-neutral-500 mb-0.5">Capacity</p>
+                    <p class="text-body font-semibold text-neutral-900">{{ data.roomTypeCapacity }} guests</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>

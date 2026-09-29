@@ -1,0 +1,15 @@
+spring:
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+    add-properties: false
+
+app:
+  frontend:
+    base-url: https://25ws-ase-pr-inso-07.apps.student.inso-w.at
+  cors:
+    allowed-origins: https://25ws-ase-pr-inso-07.apps.student.inso-w.at
+  dev:
+    expose-reset-token: false
