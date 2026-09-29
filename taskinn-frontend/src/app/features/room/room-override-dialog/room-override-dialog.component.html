@@ -1,0 +1,102 @@
+<div class="bg-white rounded-xl shadow-lg overflow-hidden min-w-[500px]">
+    <div class="bg-brand-primary h-14 flex items-center px-6 gap-3">
+        <mat-icon class="text-white!">tune</mat-icon>
+        <h2 class="text-white text-xl font-semibold">Room {{ data.room.roomNumber }}</h2>
+    </div>
+
+    @if (loading && !roomDetails) {
+        <div class="p-6 text-center text-neutral-500">Loading room details...</div>
+    } @else {
+        <form [formGroup]="overrideForm" (ngSubmit)="onSubmit()" class="p-6">
+            <!-- Info banner -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                <div class="flex items-start gap-3">
+                    <mat-icon class="text-blue-500 mt-0.5">info</mat-icon>
+                    <p class="text-sm text-blue-800">
+                        Room preset: <span class="font-semibold">"{{ roomTypeName }}"</span>. Set custom values that differ from the room type default.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-5">
+                <!-- Capacity Override -->
+                <div class="flex items-center gap-4 p-4 rounded-lg border border-neutral-200">
+                    <div class="flex-1">
+                        <label class="font-medium text-neutral-800">Capacity</label>
+                        <p class="text-sm text-neutral-500">Default: {{ data.room.roomType.capacity }} guests</p>
+                        @if ((overrideForm.get('capacityOverride')?.hasError('min') || overrideForm.get('capacityOverride')?.hasError('max')) && overrideForm.get('capacityOverride')?.touched) {
+                            <span class="form-field-error">Capacity must be between 1 and 10</span>
+                        }
+                    </div>
+                    <div class="w-32">
+                        <input class="form-field text-center" type="number" formControlName="capacityOverride" min="1" max="10" placeholder="1-10" />
+                    </div>
+                </div>
+
+                <!-- Base Price Override -->
+                <div class="flex items-center gap-4 p-4 rounded-lg border border-neutral-200">
+                    <div class="flex-1">
+                        <label class="font-medium text-neutral-800">Base Price</label>
+                        <p class="text-sm text-neutral-500">Default: €{{ data.room.roomType.basePrice?.toFixed(2) || '0.00' }}</p>
+                        @if (overrideForm.get('basePriceOverride')?.hasError('min') && overrideForm.get('basePriceOverride')?.touched) {
+                            <span class="form-field-error">Base price must be positive</span>
+                        }
+                    </div>
+                    <div class="w-32">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">€</span>
+                            <input class="form-field text-center pl-7" type="number" formControlName="basePriceOverride" min="0.01" step="0.1" placeholder="0.00" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single Beds Override -->
+                <div class="flex items-center gap-4 p-4 rounded-lg border border-neutral-200">
+                    <div class="flex-1">
+                        <label class="font-medium text-neutral-800">Single Beds</label>
+                        <p class="text-sm text-neutral-500">Default: {{ data.room.roomType.singleBed ?? 0 }}</p>
+                        @if ((overrideForm.get('singleBedOverride')?.hasError('min') || overrideForm.get('singleBedOverride')?.hasError('max')) && overrideForm.get('singleBedOverride')?.touched) {
+                            <span class="form-field-error">Single beds must be between 0 and 5</span>
+                        }
+                    </div>
+                    <div class="w-32">
+                        <input class="form-field text-center" type="number" formControlName="singleBedOverride" min="0" max="5" placeholder="0-5" />
+                    </div>
+                </div>
+
+                <!-- Double Beds Override -->
+                <div class="flex items-center gap-4 p-4 rounded-lg border border-neutral-200">
+                    <div class="flex-1">
+                        <label class="font-medium text-neutral-800">Double Beds</label>
+                        <p class="text-sm text-neutral-500">Default: {{ data.room.roomType.doubleBed ?? 0 }}</p>
+                        @if ((overrideForm.get('doubleBedOverride')?.hasError('min') || overrideForm.get('doubleBedOverride')?.hasError('max')) && overrideForm.get('doubleBedOverride')?.touched) {
+                            <span class="form-field-error">Double beds must be between 0 and 5</span>
+                        }
+                    </div>
+                    <div class="w-32">
+                        <input class="form-field text-center" type="number" formControlName="doubleBedOverride" min="0" max="5" placeholder="0-5" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between gap-3 mt-6 pt-4 border-t border-neutral-200">
+                <div class="flex gap-2">
+                    <button type="button" class="brand-neutral-button" (click)="onCancel()">
+                        <mat-icon>cancel</mat-icon>
+                        Cancel
+                    </button>
+                    <button type="button" class="brand-neutral-button" (click)="onReset()">
+                        <mat-icon>refresh</mat-icon>
+                        Reset
+                    </button>
+                </div>
+
+                <button type="submit" [disabled]="loading || overrideForm.invalid" class="brand-primary-button">
+                    <mat-icon>save</mat-icon>
+                    Save
+                </button>
+            </div>
+        </form>
+    }
+</div>

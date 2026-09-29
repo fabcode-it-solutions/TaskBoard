@@ -1,0 +1,118 @@
+<div class="bg-white rounded-xs shadow-sm border border-neutral-200 p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-heading-3 text-neutral-800">Select Rooms</h3>
+        <div class="flex gap-2">
+            <button class="brand-neutral-button text-xs px-2 py-1" (click)="onSelectAll()" [attr.disabled]="loading || null">
+                <span class="text-xs">Select All</span>
+            </button>
+            <button class="brand-neutral-button text-xs px-2 py-1" (click)="onDeselectAll()" [attr.disabled]="loading || null">
+                <span class="text-xs">Clear</span>
+            </button>
+        </div>
+    </div>
+    <div class="max-h-96 overflow-y-auto border border-neutral-200 rounded-xs">
+        @for (room of rooms; track room.id) {
+            @let constraint = getConstraintForRoom(room.id);
+            <div class="border-b border-neutral-100">
+                <!-- Room Selection Row -->
+                <div class="flex items-center px-4 py-2 hover:bg-neutral-50">
+                    <input type="checkbox" class="mr-3 h-4 w-4 text-brand-500 cursor-pointer" [checked]="selectedRoomIds.has(room.id)" (change)="toggleRoomSelection(room.id)" />
+                    <span class="text-body text-neutral-800 flex-grow">
+                        {{ room.roomNumber }}
+                        @if (constraint?.constraintType === 'maxEndTime') {
+                            <b>(E)</b>
+                        } @else if (constraint?.constraintType === 'minStartTime') {
+                            <b>(L)</b>
+                        }
+                    </span>
+                    <div class="w-6 h-6 flex items-center justify-center">
+                        @if (selectedRoomIds.has(room.id)) {
+                            <button type="button" class="flex items-center justify-center p-1 hover:bg-neutral-100 rounded transition-colors" (click)="toggleExpanded(room.id)" [attr.disabled]="loading || null">
+                                <mat-icon class="text-base text-neutral-600">
+                                    {{ isExpanded(room.id) ? 'expand_less' : 'expand_more' }}
+                                </mat-icon>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Expandable Constraints Section -->
+                @if (selectedRoomIds.has(room.id) && isExpanded(room.id)) {
+                    @if (constraint) {
+                        <div class="px-4 py-3 bg-neutral-50 border-t border-neutral-200">
+                            <p class="text-caption text-neutral-600 mb-3">Room Parameters</p>
+
+                            <div class="grid grid-cols-1 gap-3">
+                                <!-- Duration -->
+                                <div>
+                                    <label class="block text-caption text-neutral-600 mb-1">Duration (minutes)</label>
+                                    <input class="form-field text-sm" type="number" min="1" step="1" [(ngModel)]="constraint.duration" [attr.disabled]="loading || null" />
+                                </div>
+
+                                <!-- Task Type -->
+                                <div>
+                                    <label class="block text-caption text-neutral-600 mb-1">Task Type<tinn-mandatory-mark>*</tinn-mandatory-mark></label>
+                                    <select class="form-field text-sm" [(ngModel)]="constraint.taskType" [attr.disabled]="loading || null">
+                                        <option [ngValue]="undefined">Not specified</option>
+                                        <option value="CHECKOUT_CLEAN">Checkout Clean</option>
+                                        <option value="STAYOVER_CLEAN">Stayover Clean</option>
+                                        <option value="DEEP_CLEAN">Deep Clean</option>
+                                    </select>
+                                </div>
+
+                                <!-- Task Status -->
+                                <div>
+                                    <label class="block text-caption text-neutral-600 mb-1">Task Status</label>
+                                    <select class="form-field text-sm" [(ngModel)]="constraint.taskStatus" [attr.disabled]="loading || null">
+                                        <option [ngValue]="undefined">Not specified</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="BLOCKED">Blocked</option>
+                                    </select>
+                                </div>
+
+                                <!-- Constraint Type -->
+                                <div>
+                                    <label class="block text-caption text-neutral-600 mb-1">Time Constraint</label>
+                                    <select class="form-field text-sm" [(ngModel)]="constraint.constraintType" [attr.disabled]="loading || null">
+                                        <option value="none">None</option>
+                                        <option value="maxEndTime">Must finish by</option>
+                                        <option value="minStartTime">Must start after</option>
+                                    </select>
+                                </div>
+
+                                <!-- Max End Time -->
+                                @if (constraint.constraintType === 'maxEndTime') {
+                                    <div>
+                                        <label class="block text-caption text-neutral-600 mb-1">Finish By</label>
+                                        <input
+                                            class="form-field text-sm"
+                                            type="time"
+                                            [value]="getTimeInputValue(constraint.maxEndTime)"
+                                            (change)="onConstraintDateChange(constraint, 'maxEndTime', $any($event.target).value)"
+                                            [attr.disabled]="loading || null" />
+                                    </div>
+                                }
+
+                                <!-- Min Start Time -->
+                                @if (constraint.constraintType === 'minStartTime') {
+                                    <div>
+                                        <label class="block text-caption text-neutral-600 mb-1">Start After</label>
+                                        <input
+                                            class="form-field text-sm"
+                                            type="time"
+                                            [value]="getTimeInputValue(constraint.minStartTime)"
+                                            (change)="onConstraintDateChange(constraint, 'minStartTime', $any($event.target).value)"
+                                            [attr.disabled]="loading || null" />
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+    <p class="text-caption text-neutral-500 mt-2">{{ selectedRoomIds.size }} room(s) selected</p>
+</div>

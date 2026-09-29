@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskinn-frontend-dev
+  namespace: 25ws-ase-pr-inso-07
+spec:
+  selector:
+    matchLabels:
+      app: taskinn-frontend-dev
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: taskinn-frontend-dev
+    spec:
+      containers:
+        - name: taskinn-frontend-dev
+          image: registry.reset.inso-w.at/2025ws-ase-pr-group/25ws-ase-pr-inso-07/frontend:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+              ephemeral-storage: "50Mi"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+              ephemeral-storage: "50Mi"
+          livenessProbe:
+            httpGet:
+              port: 80
+              path: /health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              port: 80
+              path: /health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      imagePullSecrets:
+        - name: secret-dockercfg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s-taskinn-frontend-dev
+  namespace: 25ws-ase-pr-inso-07
+spec:
+  type: ClusterIP
+  selector:
+    app: taskinn-frontend-dev
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskinn-frontend-dev-ingress
+  namespace: 25ws-ase-pr-inso-07
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  rules:
+    - host: "25ws-ase-pr-inso-07.apps.student.inso-w.at"
+      http:
+        paths:
+          - path: /dev(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: s-taskinn-frontend-dev
+                port:
+                  number: 80

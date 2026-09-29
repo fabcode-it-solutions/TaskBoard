@@ -1,0 +1,179 @@
+<div class="min-h-screen bg-neutral-50 p-6">
+    <!-- Header -->
+    <tinn-page-header [title]="'Floor Plan Editor'" [subtitle]="'Create and manage hotel floor plans'" [icon]="'hotel'"> </tinn-page-header>
+
+    <!-- Floor Management Controls -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex gap-2">
+                <button class="brand-primary-button flex items-center gap-2" (click)="addFloor()" type="button">
+                    <mat-icon class="text-lg">add</mat-icon>
+                    <span>Add Floor</span>
+                </button>
+                <button class="brand-error-button flex items-center gap-2" (click)="removeFloor()" type="button" [disabled]="floors().length <= 1">
+                    <mat-icon class="text-lg">remove</mat-icon>
+                    <span>Remove Floor</span>
+                </button>
+
+                <!-- Copy Floor Dropdown -->
+                <div class="relative">
+                    <button class="brand-neutral-button flex items-center gap-2" (click)="toggleCopyFloorDropdown()" type="button" [disabled]="getAvailableFloorsForCopy().length === 0">
+                        <mat-icon class="text-lg">content_copy</mat-icon>
+                        <span>Copy Floor</span>
+                        <mat-icon class="text-lg">arrow_drop_down</mat-icon>
+                    </button>
+
+                    @if (showCopyFloorDropdown()) {
+                        <div class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 z-10">
+                            <div class="p-2">
+                                <p class="text-caption text-subtext-color px-3 py-2">Copy from floor:</p>
+                                @for (floor of getAvailableFloorsForCopy(); track floor) {
+                                    <button class="w-full text-left px-3 py-2 rounded hover:bg-neutral-100 transition-colors text-body" (click)="copyFloor(floor)" type="button"> Floor {{ floor }} </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Floor Buttons -->
+            <div class="flex gap-2 flex-1">
+                @for (floor of floors(); track floor) {
+                    <button
+                        class="px-4 py-2 rounded-lg transition-all cursor-pointer"
+                        [class.bg-brand-primary]="selectedFloor() === floor"
+                        [class.text-white]="selectedFloor() === floor"
+                        [class.bg-neutral-100]="selectedFloor() !== floor"
+                        [class.text-default-font]="selectedFloor() !== floor"
+                        [class.hover:bg-brand-600]="selectedFloor() === floor"
+                        [class.hover:bg-neutral-200]="selectedFloor() !== floor"
+                        (click)="selectFloor(floor)"
+                        type="button">
+                        Floor {{ floor }}
+                    </button>
+                }
+            </div>
+            <div (click)="handleAreaClick()" class="h-10 w-15">
+                @if (showButton) {
+                    <button class="brand-neutral-button flex items-center gap-2" (click)="exportRoomsCsv()" type="button" [disabled]="loading()">
+                        <mat-icon class="text-lg">download</mat-icon>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-4 p-3 rounded-lg">
+        <p class="text-caption text-brand-900">
+            @if (isPlacingStaircase()) {
+                <span class="text-caption-bold">Staircase placement mode.</span> Click on the blueprint to place a staircase.
+            } @else if (!isDrawing()) {
+                <span class="text-caption-bold">Click on the blueprint to start drawing a room.</span> Each click adds a point to the polygon.
+            } @else {
+                <span class="text-caption-bold">Drawing in progress...</span> Click to add points (min 3). Click "Complete Room" when done.
+            }
+        </p>
+    </div>
+
+    <!-- Main Content Area -->
+    @if (selectedFloor()) {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Blueprint Area -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="mb-4 flex items-center justify-between">
+                        <h2 class="text-heading-3">Floor {{ selectedFloor() }} Blueprint</h2>
+                        <div class="flex gap-2">
+                            @if (isDrawing()) {
+                                <button class="brand-primary-button text-sm" (click)="completeDrawing()" type="button">Complete Room</button>
+                                <button class="brand-neutral-button text-sm" (click)="cancelDrawing()" type="button">Cancel</button>
+                            } @else if (isPlacingStaircase()) {
+                                <button class="brand-neutral-button text-sm" (click)="cancelStaircasePlacement()" type="button">Cancel Staircase</button>
+                            } @else {
+                                <button class="flex items-center gap-2 text-sm" [class.brand-warning-button]="isPlacingStaircase()" [class.brand-neutral-button]="!isPlacingStaircase()" (click)="toggleStaircaseMode()" type="button">
+                                    <mat-icon class="text-lg">stairs</mat-icon>
+                                    <span>Add Staircase</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- SVG Canvas -->
+                    <div class="relative bg-neutral-100 rounded-lg overflow-hidden" style="aspect-ratio: 16/10">
+                        <svg class="w-full h-full cursor-crosshair" (click)="onBlueprintClick($event)" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1600 1000">
+                            <!-- Background Blueprint Image -->
+                            <image [attr.href]="blueprintImage" x="0" y="0" width="1600" height="1000" opacity="0.3" />
+
+                            <!-- Existing Rooms -->
+                            @for (room of currentFloorRooms(); track room.id) {
+                                @if (!selectedRoom() || selectedRoom()!.id !== room.id) {
+                                    <polygon
+                                        [attr.points]="pointsToPolygonString(room.svgPoints)"
+                                        class="fill-brand-200 stroke-brand-600 hover:fill-brand-300 cursor-pointer transition-all"
+                                        stroke-width="2"
+                                        opacity="0.6"
+                                        (click)="$event.stopPropagation(); editRoom(room)" />
+                                    <!-- Room Label -->
+                                    <text [attr.x]="getCenterX(room.svgPoints)" [attr.y]="getCenterY(room.svgPoints)" class="fill-brand-900 text-caption-bold pointer-events-none" text-anchor="middle" dominant-baseline="middle">
+                                        {{ room.number }}
+                                    </text>
+                                }
+                            }
+
+                            @for (staircase of currentFloorStaircases(); track staircase.id) {
+                                <g class="cursor-pointer" (click)="$event.stopPropagation(); deleteStaircase(staircase.id)">
+                                    <circle [attr.cx]="staircase.x" [attr.cy]="staircase.y" r="20" fill="#fef3c7" stroke="#d97706" stroke-width="2" />
+                                    <line [attr.x1]="staircase.x - 10" [attr.y1]="staircase.y - 8" [attr.x2]="staircase.x + 10" [attr.y2]="staircase.y - 8" stroke="#92400e" stroke-width="2" />
+                                    <line [attr.x1]="staircase.x - 10" [attr.y1]="staircase.y" [attr.x2]="staircase.x + 10" [attr.y2]="staircase.y" stroke="#92400e" stroke-width="2" />
+                                    <line [attr.x1]="staircase.x - 10" [attr.y1]="staircase.y + 8" [attr.x2]="staircase.x + 10" [attr.y2]="staircase.y + 8" stroke="#92400e" stroke-width="2" />
+                                </g>
+                            }
+
+                            <!-- Current Drawing -->
+                            @if (isDrawing() && currentPoints().length > 0) {
+                                <!-- Draw points -->
+                                @for (point of currentPoints(); track $index) {
+                                    <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" class="fill-error-600" />
+                                }
+                                <!-- Draw lines connecting points -->
+                                @if (currentPoints().length > 1) {
+                                    <polyline [attr.points]="pointsToPolygonString(currentPoints())" class="fill-none stroke-error-600" stroke-width="2" stroke-dasharray="5,5" />
+                                }
+                                <!-- Preview polygon if 3+ points -->
+                                @if (currentPoints().length >= 3) {
+                                    <polygon [attr.points]="pointsToPolygonString(currentPoints())" class="fill-error-200 stroke-error-600" stroke-width="2" opacity="0.3" />
+                                }
+                            }
+
+                            <!-- Room Being Edited/Created (shown when properties panel is open) -->
+                            @if (selectedRoom() && !isDrawing()) {
+                                <polygon [attr.points]="pointsToPolygonString(selectedRoom()!.svgPoints)" class="fill-warning-200 stroke-warning-600" stroke-width="3" opacity="0.5" stroke-dasharray="8,4" />
+                                <!-- Draw points for visibility -->
+                                @for (point of selectedRoom()!.svgPoints; track $index) {
+                                    <circle [attr.cx]="point.x" [attr.cy]="point.y" r="5" class="fill-warning-600" />
+                                }
+                            }
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="col-span-1">
+                <!-- Room Properties Panel -->
+                @if (selectedRoom()) {
+                    <tinn-room-properties-panel [room]="selectedRoom()!" (roomSaved)="onRoomSaved($event)" (cancelled)="onRoomCancelled()" />
+                }
+
+                <!-- Room List -->
+                <tinn-room-list [rooms]="currentFloorRooms()" (editRoom)="editRoom($event)" (deleteRoom)="disableRoom($event)" [class.mt-6]="selectedRoom()" />
+            </div>
+        </div>
+    } @else {
+        <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+            <mat-icon class="text-6xl text-neutral-400 mb-4">floor</mat-icon>
+            <p class="text-body text-subtext-color">No floor selected. Add a floor to get started.</p>
+        </div>
+    }
+</div>

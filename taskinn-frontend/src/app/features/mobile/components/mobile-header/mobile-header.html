@@ -1,0 +1,21 @@
+<header class="sticky top-0 left-0 right-0 z-50 mobile-header shadow-md">
+    <div class="flex flex-col">
+        <div class="flex items-center gap-4 p-4 max-w-full">
+            @if (showBackButton()) {
+                <button type="button" class="flex items-center justify-center background-transparent border-none text-white cursor-pointer rounded-xl transition-colors hover:bg-white/10 active:bg-white/20" (click)="onBackClick()">
+                    <mat-icon class="text-2xl w-6 h-6">arrow_back</mat-icon>
+                </button>
+            }
+
+            <h1 class="flex-1 text-xl font-semibold text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis">
+                {{ title() }}
+            </h1>
+
+            <div class="flex items-center justify-end w-10">
+                <ng-content select="[header-actions]"></ng-content>
+            </div>
+        </div>
+
+        <ng-content select="[header-bottom]"></ng-content>
+    </div>
+</header>

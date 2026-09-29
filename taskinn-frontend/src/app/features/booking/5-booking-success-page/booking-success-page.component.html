@@ -1,0 +1,99 @@
+<div class="min-h-screen flex justify-center p-4">
+    <div class="w-full max-w-4xl">
+        <tinn-page-header [title]="'Booking Confirmed!'" [subtitle]="'Your booking has been successfully created'" [icon]="'check_circle'"> </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+            <!-- Header -->
+            <div class="bg-green-500 h-14 rounded-t-lg flex items-center p-4 gap-3"></div>
+
+            <!-- Content Container -->
+            <div class="flex flex-col m-4 gap-4">
+                <!-- Booking Details -->
+                <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <mat-icon class="text-brand-primary">confirmation_number</mat-icon>
+                        <h3 class="text-default-font text-lg font-semibold">Booking Details</h3>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Booking ID:</span>
+                            <span class="text-default-font font-bold text-xl">{{ bookingResponse()?.bookingId }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Status:</span>
+                            <span class="text-green-600 font-bold">{{ bookingResponse()?.status }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Guest Email:</span>
+                            <span class="text-default-font font-medium">{{ bookingResponse()?.guestEmail }}</span>
+                        </div>
+
+                        <div class="border-t border-neutral-300 my-2"></div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Check-in:</span>
+                            <span class="text-default-font font-medium">{{ bookingResponse()?.checkInDate }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Check-out:</span>
+                            <span class="text-default-font font-medium">{{ bookingResponse()?.checkOutDate }}</span>
+                        </div>
+
+                        @if (bookingResponse()?.earlyCheckIn || bookingResponse()?.lateCheckOut) {
+                            <div class="border-t border-neutral-300 my-2"></div>
+
+                            <div>
+                                <div class="text-subtext-color mb-2">Additional Services:</div>
+                                @if (bookingResponse()?.earlyCheckIn) {
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <mat-icon class="text-brand-primary text-sm">schedule</mat-icon>
+                                        <span class="text-default-font">Early Check-in</span>
+                                    </div>
+                                }
+                                @if (bookingResponse()?.lateCheckOut) {
+                                    <div class="flex items-center gap-2">
+                                        <mat-icon class="text-brand-primary text-sm">schedule</mat-icon>
+                                        <span class="text-default-font">Late Check-out</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="border-t border-neutral-300 my-2"></div>
+
+                        <div>
+                            <div class="text-subtext-color mb-2">Assigned Rooms:</div>
+                            @for (roomNumber of bookingResponse()?.assignedRoomNumbers; track $index) {
+                                <div class="inline-block bg-brand-primary text-white px-3 py-1 rounded-full mr-2 mb-2">Room {{ roomNumber }}</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Information Message -->
+                <div class="bg-blue-50 border border-blue-300 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <mat-icon class="text-blue-600!">info</mat-icon>
+                        <div class="text-blue-600 text-sm">
+                            <p class="font-semibold mb-1">Next Steps:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>A confirmation email has been sent to {{ bookingResponse()?.guestEmail }}</li>
+                                <li>Please save your booking ID for future reference</li>
+                                <li>Bring a valid ID on check-in day</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="flex justify-center mt-4">
+                    <button (click)="startNewBooking()" class="brand-primary-button">
+                        <mat-icon>add</mat-icon>
+                        Make Another Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

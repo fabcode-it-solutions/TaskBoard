@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your TaskInn Invoice</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6; color: #333; background-color: #f8f9fa;
+            margin: 0; padding: 20px;
+        }
+        .container {
+            max-width: 680px; margin: 0 auto; padding: 30px;
+            border: 1px solid #dee2e6; border-radius: 8px;
+            background-color: #ffffff; box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .header {
+            text-align: center; border-bottom: 2px solid #0d6efd; padding-bottom: 20px; margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 28px; font-weight: 700; color: #0d6efd; margin: 0;
+        }
+        .header p { margin: 5px 0 0 0; color: #6c757d; font-size: 14px; }
+
+        .invoice-meta-table {
+            width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px;
+            background-color: #f8f9fa; border-radius: 5px;
+        }
+        .invoice-meta-table td {
+            padding: 15px; vertical-align: top;
+        }
+
+        .meta-group h4 { margin: 0 0 5px 0; font-size: 12px; text-transform: uppercase; color: #6c757d; }
+        .meta-group p { margin: 0; font-weight: 600; font-size: 15px; }
+
+        .items-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 30px;
+        }
+        .items-table th {
+            text-align: left; padding: 10px; border-bottom: 2px solid #dee2e6;
+            color: #495057; font-size: 13px; text-transform: uppercase;
+        }
+        .items-table td {
+            padding: 12px 10px; border-bottom: 1px solid #f1f1f1; font-size: 14px;
+        }
+        .items-table td.amount { text-align: right; font-weight: 500; }
+        .items-table td.qty { text-align: center; }
+
+        .summary-section {
+            display: flex; justify-content: flex-end;
+        }
+        .summary-box {
+            width: 250px; text-align: right;
+        }
+        .summary-row {
+            display: flex; justify-content: space-between; padding: 5px 0;
+            font-size: 14px; color: #6c757d;
+        }
+        .summary-row.total {
+            border-top: 2px solid #dee2e6; margin-top: 10px; padding-top: 10px;
+            font-size: 18px; font-weight: 700; color: #198754;
+        }
+
+        .footer {
+            margin-top: 40px; font-size: 0.85em; color: #888;
+            text-align: center; border-top: 1px solid #eee; padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>TASKINN HOTEL</h1>
+        <p>Invoice & Receipt</p>
+    </div>
+
+    <table class="invoice-meta-table">
+        <tr>
+            <td valign="top" width="50%">
+                <div class="meta-group">
+                    <h4>Bill To</h4>
+                    <p th:text="${invoice.guestName}">John Doe</p>
+                </div>
+            </td>
+            <td valign="top" width="50%" align="right" style="text-align: right;">
+                <div class="meta-group">
+                    <h4>Booking Reference</h4>
+                    <p>#<span th:text="${invoice.bookingId}">12345</span></p>
+                    <p style="font-weight: 400; font-size: 13px; margin-top: 4px;" th:text="${#temporals.format(#temporals.createNow(), 'MMM dd, yyyy')}">Jan 01, 2026</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+        <tr>
+            <th>Description</th>
+            <th class="qty">Qty</th>
+            <th class="amount">Unit Price</th>
+            <th class="amount">Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${invoice.items}">
+            <td>
+                <span th:text="${item.description}">Room Charge</span>
+                <br/><span style="font-size: 11px; color: #888;" th:text="${item.category}">ROOM</span>
+            </td>
+            <td class="qty" th:text="${item.quantity}">1</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}">100.00</td>
+            <td class="amount" th:text="${#numbers.formatDecimal(item.total, 1, 'COMMA', 2, 'POINT')}">100.00</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="summary-section">
+        <div class="summary-box">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span th:text="${'€ ' + #numbers.formatDecimal(invoice.totalAmount, 1, 'COMMA', 2, 'POINT')}">€ 250,00</span>
+            </div>
+            <div class="summary-row">
+                <span>Paid:</span>
+                <span th:text="${'- € ' + #numbers.formatDecimal(invoice.alreadyPaid, 1, 'COMMA', 2, 'POINT')}">- € 250,00</span>
+            </div>
+            <div class="summary-row total">
+                <span>Balance Due:</span>
+                <span th:style="${invoice.remainingBalance > 0 ? 'color: #dc3545;' : 'color: #198754;'}"
+                      th:text="${'€ ' + #numbers.formatDecimal(invoice.remainingBalance, 1, 'COMMA', 2, 'POINT')}">€ 0,00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for staying with TaskInn!</p>
+        <p>If you have questions about this invoice, please contact <a th:href="'mailto:' + ${hotelEmail}" th:text="${hotelEmail}">contact@taskinn.com</a>.</p>
+        <p>&copy; <span th:text="${#temporals.year(#temporals.createNow())}">2025</span> TaskInn Hotel Management</p>
+    </div>
+</div>
+</body>
+</html>

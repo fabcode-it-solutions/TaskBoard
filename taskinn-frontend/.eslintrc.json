@@ -1,0 +1,194 @@
+{
+    "root": true,
+    "plugins": [
+      "@typescript-eslint",
+      "@angular-eslint",
+      "unused-imports"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "*.ts"
+        ],
+        "parser": "@typescript-eslint/parser",
+        "parserOptions": {
+          "ecmaVersion": "latest",
+          "sourceType": "module",
+          "project": "./tsconfig.*?.json"
+        },
+        "extends": [
+          "eslint:recommended",
+          "plugin:@typescript-eslint/recommended",
+          "prettier"
+        ],
+        "rules": {
+          "multiline-comment-style": [
+            "warn",
+            "starred-block"
+          ],
+          "@typescript-eslint/prefer-for-of": "warn",
+          "@typescript-eslint/prefer-string-starts-ends-with": "warn",
+          "@typescript-eslint/prefer-includes": "warn",
+          "@typescript-eslint/member-ordering": [
+            "warn",
+            {
+              "default": [
+                [
+                  "get",
+                  "set"
+                ]
+              ]
+            }
+          ],
+          "@typescript-eslint/prefer-optional-chain": "warn",
+          "func-call-spacing": "off",
+          "dot-notation": "off",
+          "@typescript-eslint/dot-notation": "warn",
+          "comma-spacing": "off",
+          "comma-dangle": [
+            "error",
+            "always-multiline"
+          ],
+          "no-multiple-empty-lines": [
+            "error",
+            {
+              "max": 1,
+              "maxEOF": 0,
+              "maxBOF": 0
+            }
+          ],
+          "@angular-eslint/no-output-on-prefix": "warn",
+          "@angular-eslint/component-class-suffix": "warn",
+          "@angular-eslint/directive-class-suffix": "warn",
+          "@angular-eslint/prefer-output-readonly": "warn",
+          "curly": [
+            "error",
+            "all"
+          ],
+          "default-case": "error",
+          "default-case-last": "error",
+          "eqeqeq": [
+            "error",
+            "smart"
+          ],
+          "no-constructor-return": "error",
+          "no-eval": "error",
+          "no-implied-eval": "error",
+          "no-loss-of-precision": "error",
+          "no-param-reassign": [
+            "error",
+            {
+              "props": true
+            }
+          ],
+          "no-script-url": "error",
+          "@typescript-eslint/require-array-sort-compare": "error",
+          "@typescript-eslint/no-require-imports": "error",
+          "@typescript-eslint/no-confusing-non-null-assertion": "error",
+          "no-shadow": "off",
+          "@typescript-eslint/no-shadow": "error",
+          "no-dupe-class-members": "off",
+          "@typescript-eslint/no-dupe-class-members": "error",
+          "no-unused-vars": "off",
+          "@typescript-eslint/no-unused-vars": "off",
+          "unused-imports/no-unused-imports": "error",
+          "unused-imports/no-unused-vars": [
+            "error",
+            {
+              "varsIgnorePattern": "^[_]$",
+              "argsIgnorePattern": "[_]$",
+              "vars": "all",
+              "args": "after-used"
+            }
+          ],
+          "@angular-eslint/contextual-lifecycle": "error",
+          "@angular-eslint/no-output-native": "error",
+          "@angular-eslint/use-injectable-provided-in": "error",
+          "@angular-eslint/no-conflicting-lifecycle": "error",
+          "@angular-eslint/no-input-rename": "error",
+          "@angular-eslint/no-output-rename": "error",
+          "@angular-eslint/relative-url-prefix": "error",
+          "@angular-eslint/use-component-view-encapsulation": "error",
+          "@angular-eslint/use-pipe-transform-interface": "error",
+          "@angular-eslint/no-inputs-metadata-property": "error",
+          "@angular-eslint/no-outputs-metadata-property": "error",
+          "@angular-eslint/no-queries-metadata-property": "error",
+          "no-console": [
+            "error",
+            {
+              "allow": [
+                "warn",
+                "error"
+              ]
+            }
+          ],
+          "@typescript-eslint/explicit-function-return-type": "error",
+          "@typescript-eslint/explicit-member-accessibility": [
+            "error",
+            {
+              "ignoredMethodNames": [
+                "constructor",
+                "ngOnChanges",
+                "ngOnInit",
+                "ngDoCheck",
+                "ngAfterContentInit",
+                "ngAfterContentChecked",
+                "ngAfterViewInit",
+                "ngAfterViewChecked",
+                "ngOnDestroy"
+              ]
+            }
+          ],
+          "@angular-eslint/component-max-inline-declarations": [
+            "error",
+            {
+              "animations": 5,
+              "styles": 0,
+              "template": 3
+            }
+          ],
+          "@angular-eslint/pipe-prefix": [
+            "error",
+            {
+              "prefixes": [
+                "tinn"
+              ]
+            }
+          ],
+          "@angular-eslint/directive-selector": [
+            "error",
+            {
+              "type": "attribute",
+              "prefix": "tinn",
+              "style": "camelCase"
+            }
+          ],
+          "@angular-eslint/component-selector": [
+            "error",
+            {
+              "type": "element",
+              "prefix": "tinn",
+              "style": "kebab-case"
+            }
+          ]
+        }
+      },
+      {
+        "files": [
+          "*.html"
+        ],
+        "parser": "@angular-eslint/template-parser",
+         "extends": [
+           "plugin:@angular-eslint/template/recommended"
+          ],
+        "plugins": [
+          "@angular-eslint/template"
+        ],
+        "rules": {
+          "@angular-eslint/template/no-negated-async": "error",
+          "@angular-eslint/template/no-positive-tabindex": "error",
+          "@angular-eslint/template/no-autofocus": "error"
+        }
+      }
+    ]
+  }

@@ -1,0 +1,116 @@
+@reference "./tailwind.css";
+
+/*  =========== BUTTONS ==========  */
+/* Used on <button> tags */
+.brand-primary-button {
+    @apply bg-brand-primary
+    hover:bg-brand-500
+    text-white!
+    rounded-xs
+    flex
+    items-center
+    px-4
+    py-2
+    gap-2
+    shadow-md
+    transition-colors
+    cursor-pointer
+    text-lg;
+}
+
+.brand-error-button {
+    @apply bg-error-500
+    hover:bg-error-600
+    text-white!
+    rounded-xs
+    flex
+    items-center
+    px-4
+    py-2
+    shadow-md
+    transition-colors
+    cursor-pointer
+    text-lg;
+}
+
+.brand-primary-button:disabled {
+    @apply bg-gray-300
+    text-gray-500!
+    cursor-not-allowed
+    hover:bg-gray-300
+    shadow-sm;
+}
+
+/* Used on <button> tags */
+.brand-neutral-button {
+    @apply bg-neutral-300
+    hover:bg-neutral-200
+    text-default-font!
+    rounded-xs
+    flex
+    items-center
+    px-4
+    py-2
+    gap-2
+    shadow-md
+    transition-colors
+    cursor-pointer
+    text-lg;
+}
+
+/*  =========== INPUT FIELDS ==========  */
+/* Used on <label> tags above input fields */
+.form-field-label {
+    @apply text-subtext-color text-sm;
+}
+
+/* Used on <input> tags */
+.form-field {
+    @apply block
+    w-full
+    h-12
+    px-4
+
+    text-default-font
+    placeholder:text-neutral-400
+
+    bg-neutral-200
+    hover:bg-neutral-300
+    focus:bg-neutral-200
+
+    border
+    rounded-xs
+    border-neutral-300
+    focus:border-brand-primary
+    focus:outline-none
+
+    shadow-sm
+    hover:shadow-md
+    focus:shadow-lg
+
+    transition-shadow duration-150
+    transition-colors duration-150;
+}
+
+/* Used on <span> tags under input fields */
+.form-field-error {
+    @apply text-error-600 text-xs;
+}
+
+/*  =========== MATERIAL DIALOG OVERRIDES ==========  */
+/* Remove padding from Material Dialog containers */
+.no-padding-dialog .mat-mdc-dialog-container {
+    padding: 0 !important;
+}
+
+/* Blur and darken backdrop for dialogs */
+.dialog-backdrop-blur,
+.cdk-overlay-backdrop.dialog-backdrop-blur {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.mdc-dialog__surface {
+    background: transparent !important;
+}

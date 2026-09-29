@@ -1,0 +1,16 @@
+<div class="bg-white rounded-xs shadow-sm border border-neutral-200 p-6 mt-6">
+    <h3 class="text-heading-3 text-neutral-800 mb-4">Optimization Settings</h3>
+
+    <div class="mb-6">
+        <label class="block text-body-bold text-neutral-700 mb-2">Start Time</label>
+        <input class="form-field text-sm w-40" type="time" [value]="optimizationStartTime" (change)="onOptimizationStartTimeChange($any($event.target).value)" [attr.disabled]="loading || null" />
+        <p class="text-caption text-neutral-500 mt-1">Earliest time employees can start working</p>
+    </div>
+
+    <div class="flex justify-end">
+        <button class="brand-primary-button" (click)="onGenerateSchedule()" [attr.disabled]="loading || !canGenerate || null">
+            <mat-icon class="text-sm">auto_fix_high</mat-icon>
+            <span class="text-sm">Generate Optimized Schedule</span>
+        </button>
+    </div>
+</div>

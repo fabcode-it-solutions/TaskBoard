@@ -1,0 +1,44 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build output
+dist/
+.angular/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Test coverage
+coverage/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Claude
+.claude/
+
+# Certificates (for local dev)
+*.pem
+
+# Documentation (not needed in container)
+*.md
+DEV.md

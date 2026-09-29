@@ -1,0 +1,105 @@
+<div class="h-screen flex justify-center p-8 overflow-hidden">
+    <div class="w-full max-w-3xl flex flex-col">
+        <tinn-page-header [title]="'My Schedule'" [subtitle]="'Click on dates to request PTO or on existing PTO to delete'" [icon]="'calendar_month'"> </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl flex flex-col flex-1 min-h-0">
+            <!-- Header with Legend -->
+            <div class="bg-brand-primary h-auto rounded-t-lg flex items-center p-4 gap-3">
+                <!-- Legend -->
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 bg-red-200 rounded"></div>
+                        <span class="text-white text-sm font-medium">Work Shift</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-5 h-5 bg-brand-200 rounded"></div>
+                        <span class="text-white text-sm font-medium">Time Off (PTO)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Container -->
+            <div class="flex flex-col m-4 gap-4 flex-1 min-h-0">
+                <!-- Calendar Component -->
+                <tinn-date-range-calendar class="flex flex-1 min-h-0" [dateIntervals]="dateIntervals()" [shiftDays]="shiftDays()" [mode]="'pto'" (rangeSelected)="onRangeSelected($event)" (intervalClicked)="onIntervalClicked($event)">
+                </tinn-date-range-calendar>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create PTO Confirmation Dialog -->
+@if (showCreateDialog()) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="closeCreateDialog()">
+        <div class="bg-default-background rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4" (click)="$event.stopPropagation()">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <mat-icon class="text-yellow-600!">beach_access</mat-icon>
+                </div>
+                <h2 class="text-xl font-semibold text-default-font">Request PTO</h2>
+            </div>
+
+            <p class="text-subtext-color mb-4">You are about to request time off for the following dates:</p>
+
+            <div class="bg-neutral-100 rounded-lg p-4 mb-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-sm text-subtext-color block">From</span>
+                        <span class="font-medium text-default-font">{{ formatDate(pendingCreateRange()!.startDate) }}</span>
+                    </div>
+                    <mat-icon class="text-neutral-400">arrow_forward</mat-icon>
+                    <div>
+                        <span class="text-sm text-subtext-color block">To</span>
+                        <span class="font-medium text-default-font">{{ formatDate(pendingCreateRange()!.endDate) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" class="brand-neutral-button" (click)="closeCreateDialog()"> Cancel </button>
+                <button type="button" class="brand-primary-button" (click)="confirmCreatePto()">
+                    <mat-icon>check</mat-icon>
+                    Confirm Request
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete PTO Confirmation Dialog -->
+@if (showDeleteDialog()) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="closeDeleteDialog()">
+        <div class="bg-default-background rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4" (click)="$event.stopPropagation()">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <mat-icon class="text-red-600!">delete</mat-icon>
+                </div>
+                <h2 class="text-xl font-semibold text-default-font">Cancel PTO</h2>
+            </div>
+
+            <p class="text-subtext-color mb-4">Are you sure you want to cancel this time off request?</p>
+
+            <div class="bg-neutral-100 rounded-lg p-4 mb-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-sm text-subtext-color block">From</span>
+                        <span class="font-medium text-default-font">{{ formatDate(pendingDeleteInterval()!.startDate) }}</span>
+                    </div>
+                    <mat-icon class="text-neutral-400">arrow_forward</mat-icon>
+                    <div>
+                        <span class="text-sm text-subtext-color block">To</span>
+                        <span class="font-medium text-default-font">{{ formatDate(pendingDeleteInterval()!.endDate) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" class="brand-neutral-button" (click)="closeDeleteDialog()"> Keep PTO </button>
+                <button type="button" class="brand-error-button" (click)="confirmDeletePto()">
+                    <mat-icon>delete</mat-icon>
+                    Cancel PTO
+                </button>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,58 @@
+<div class="h-screen flex justify-center p-8">
+    <div class="w-full max-w-none">
+        <tinn-page-header [title]="'Statistics'" [subtitle]="'Overview of hotel performance'" [icon]="'bar_chart'"> </tinn-page-header>
+
+        @if (criticalError) {
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-4">
+                {{ criticalError }}
+            </div>
+        } @else if (loading()) {
+            <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl p-8 mx-4">
+                <div class="flex justify-center items-center">
+                    <div class="text-neutral-500">Loading statistics...</div>
+                </div>
+            </div>
+        } @else {
+            <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl mx-4">
+                <div class="bg-brand-primary rounded-t-lg flex items-center p-4 gap-3 px-6">
+                    <mat-icon class="text-white!">dashboard</mat-icon>
+                    <div class="text-white text-lg flex-1">Statistics Overview</div>
+                </div>
+
+                <div class="px-6 py-6 pb-4">
+                    <label class="form-field-label block mb-3">Statistics Target</label>
+                    <div class="flex gap-4 justify-start w-full">
+                        <div
+                            [ngClass]="activeTab() === 'bookings' ? 'bg-brand-primary text-white' : 'bg-neutral-200 text-neutral-600'"
+                            (click)="setActiveTab('bookings')"
+                            class="cursor-pointer px-6 py-3 rounded-4xl border-2 border-neutral-300 hover:border-brand-primary transition-all flex-1 max-w-xs">
+                            Bookings
+                        </div>
+                        <div
+                            [ngClass]="activeTab() === 'minibar' ? 'bg-brand-primary text-white' : 'bg-neutral-200 text-neutral-600'"
+                            (click)="setActiveTab('minibar')"
+                            class="cursor-pointer px-6 py-3 rounded-4xl border-2 border-neutral-300 hover:border-brand-primary transition-all flex-1 max-w-xs">
+                            Minibar
+                        </div>
+                        <div
+                            [ngClass]="activeTab() === 'cleaning' ? 'bg-brand-primary text-white' : 'bg-neutral-200 text-neutral-600'"
+                            (click)="setActiveTab('cleaning')"
+                            class="cursor-pointer px-6 py-3 rounded-4xl border-2 border-neutral-300 hover:border-brand-primary transition-all flex-1 max-w-xs">
+                            Cleaning
+                        </div>
+                        <div
+                            [ngClass]="activeTab() === 'employees' ? 'bg-brand-primary text-white' : 'bg-neutral-200 text-neutral-600'"
+                            (click)="setActiveTab('employees')"
+                            class="cursor-pointer px-6 py-3 rounded-4xl border-2 border-neutral-300 hover:border-brand-primary transition-all flex-1 max-w-xs">
+                            Employees
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 pb-6 pt-0 flex-1 min-h-0">
+                    <router-outlet></router-outlet>
+                </div>
+            </div>
+        }
+    </div>
+</div>

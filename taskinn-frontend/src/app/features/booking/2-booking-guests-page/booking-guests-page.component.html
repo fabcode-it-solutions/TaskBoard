@@ -1,0 +1,77 @@
+<div class="min-h-screen flex justify-center p-4">
+    <div class="w-full max-w-xl">
+        <tinn-page-header [title]="'Guest Information'" [subtitle]="'Specify the number of rooms and guests'" [icon]="'people'"> </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+            <!-- Guest Details Header -->
+            <div class="bg-brand-primary h-14 rounded-t-lg flex items-center p-4 gap-3"> </div>
+
+            <!-- Form Container -->
+            <div class="flex flex-col m-4 gap-4">
+                <form [formGroup]="guestsForm" class="flex flex-col gap-4 px-6">
+                    <!-- Number of Rooms -->
+                    <div class="mb-4">
+                        <label class="form-field-label">Number of Rooms<tinn-mandatory-mark /></label>
+                        <input type="number" class="form-field bg-neutral-200!" formControlName="numRooms" min="1" placeholder="Enter number of rooms" required />
+                        @if (guestsForm.get('numRooms')?.hasError('required') && guestsForm.get('numRooms')?.touched) {
+                            <span class="form-field-error">Number of rooms is required</span>
+                        }
+                        @if (guestsForm.get('numRooms')?.hasError('min') && guestsForm.get('numRooms')?.touched) {
+                            <span class="form-field-error">Minimum 1 room required</span>
+                        }
+                        @if (guestsForm.get('numRooms')?.hasError('tooManyRooms') && guestsForm.get('numRooms')?.touched) {
+                            <span class="form-field-error">{{ getRoomsError() }}</span>
+                        }
+                    </div>
+
+                    <!-- Number of Adults -->
+                    <div class="mb-4">
+                        <label class="form-field-label">Number of Adults<tinn-mandatory-mark /></label>
+                        <input type="number" class="form-field bg-neutral-200!" formControlName="numAdults" min="1" placeholder="Enter number of adults" required />
+                        @if (guestsForm.get('numAdults')?.hasError('required') && guestsForm.get('numAdults')?.touched) {
+                            <span class="form-field-error">Number of adults is required</span>
+                        }
+                        @if (guestsForm.get('numAdults')?.hasError('min') && guestsForm.get('numAdults')?.touched) {
+                            <span class="form-field-error">Minimum 1 adult required</span>
+                        }
+                    </div>
+
+                    <!-- Number of Children -->
+                    <div class="mb-4">
+                        <label class="form-field-label">Number of Children<tinn-mandatory-mark /></label>
+                        <input type="number" class="form-field bg-neutral-200!" formControlName="numChildren" min="0" placeholder="Enter number of children" required />
+                        @if (guestsForm.get('numChildren')?.hasError('required') && guestsForm.get('numChildren')?.touched) {
+                            <span class="form-field-error">Number of children is required</span>
+                        }
+                        @if (guestsForm.get('numChildren')?.hasError('min') && guestsForm.get('numChildren')?.touched) {
+                            <span class="form-field-error">Cannot be negative</span>
+                        }
+                    </div>
+
+                    <div class="h-0.25 bg-neutral-200"></div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-between items-center gap-4">
+                        <button type="button" class="brand-neutral-button" (click)="goBack()">
+                            <mat-icon>arrow_back</mat-icon>
+                            Back
+                        </button>
+
+                        <div class="flex gap-3">
+                            @if (isStaff()) {
+                                <button type="button" class="brand-error-button" (click)="cancelBooking()">
+                                    <mat-icon>close</mat-icon>
+                                    Cancel
+                                </button>
+                            }
+                            <button type="button" [disabled]="!guestsForm.valid" class="brand-primary-button" (click)="goForwards()">
+                                <mat-icon>arrow_forward</mat-icon>
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

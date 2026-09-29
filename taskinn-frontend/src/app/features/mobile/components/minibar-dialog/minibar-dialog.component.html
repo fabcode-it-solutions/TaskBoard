@@ -1,0 +1,92 @@
+<div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div class="bg-linear-to-br from-purple-500 to-purple-600 px-6 py-6 text-center shrink-0">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xl font-bold text-white flex-1">Report Minibar</h2>
+            <button type="button" (click)="onCancel()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20 active:bg-white/30 transition-colors">
+                <mat-icon class="text-white text-lg">close</mat-icon>
+            </button>
+        </div>
+        <p class="text-sm text-white/95">Room {{ roomNumber }} - Select consumed items</p>
+    </div>
+
+    <div class="p-6 overflow-y-auto flex-1">
+        @if (loading()) {
+            <div class="flex items-center justify-center py-8">
+                <mat-icon class="animate-spin text-purple-600 text-3xl">hourglass_empty</mat-icon>
+                <span class="ml-2 text-neutral-600">Loading inventory...</span>
+            </div>
+        } @else if (items().length === 0) {
+            <div class="text-center py-8">
+                <mat-icon class="text-5xl text-neutral-400 mb-2">inventory_2</mat-icon>
+                <p class="text-neutral-600">No minibar items available</p>
+            </div>
+        } @else {
+            @for (category of categorizedItems(); track category.category) {
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-3 px-1">{{ category.category }}</h3>
+
+                    <div class="space-y-2">
+                        @for (item of category.items; track item.id) {
+                            <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-xl">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-neutral-900 truncate">{{ item.name }}</p>
+                                    <p class="text-xs text-neutral-500"> {{ item.unitPrice | currency: 'EUR' }} per {{ item.unitOfMeasurement }} </p>
+                                </div>
+
+                                <div class="flex items-center gap-2 ml-4">
+                                    <button
+                                        type="button"
+                                        (click)="decrementQuantity(item.id)"
+                                        [disabled]="item.selectedQuantity === 0"
+                                        class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                                        [class]="item.selectedQuantity === 0 ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed' : 'bg-purple-100 text-purple-600 hover:bg-purple-200 active:bg-purple-300'">
+                                        <mat-icon class="text-lg">remove</mat-icon>
+                                    </button>
+
+                                    <span class="w-8 text-center font-semibold text-neutral-900">{{ item.selectedQuantity }}</span>
+
+                                    <button
+                                        type="button"
+                                        (click)="incrementQuantity(item.id)"
+                                        [disabled]="item.selectedQuantity >= item.currentStock"
+                                        class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                                        [class]="item.selectedQuantity >= item.currentStock ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed' : 'bg-purple-100 text-purple-600 hover:bg-purple-200 active:bg-purple-300'">
+                                        <mat-icon class="text-lg">add</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="p-6 border-t border-neutral-200 shrink-0">
+        @if (hasSelectedItems()) {
+            <div class="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <div class="flex items-center gap-2">
+                    <mat-icon class="text-purple-600">shopping_cart</mat-icon>
+                    <p class="text-sm text-purple-700 font-medium">{{ totalSelectedItems() }} item(s) selected</p>
+                </div>
+            </div>
+        }
+
+        <div class="flex gap-3">
+            <button type="button" (click)="onCancel()" class="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-700 bg-neutral-200 hover:bg-neutral-300 active:bg-neutral-400 transition-colors">Cancel</button>
+            <button
+                type="button"
+                (click)="onSubmit()"
+                [disabled]="loading() || !hasSelectedItems()"
+                class="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 bg-linear-to-br from-purple-600 to-purple-500 shadow-md transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none disabled:bg-linear-to-br disabled:from-neutral-300 disabled:to-neutral-400">
+                @if (loading()) {
+                    <mat-icon class="animate-spin text-base">hourglass_empty</mat-icon>
+                    <span>Submitting...</span>
+                } @else {
+                    <mat-icon class="text-base">check</mat-icon>
+                    <span>Submit Report</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>

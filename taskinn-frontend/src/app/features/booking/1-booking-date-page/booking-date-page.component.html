@@ -1,0 +1,74 @@
+<div class="h-screen flex justify-center p-8 overflow-hidden">
+    <div class="w-full max-w-3xl flex flex-col">
+        <tinn-page-header [title]="'Select Dates'" [subtitle]="'Choose your check-in and check-out date'" [icon]="'calendar_today'"> </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl flex flex-col flex-1 min-h-0">
+            <!-- Booking Dates Header -->
+            <div class="bg-brand-primary h-14 rounded-t-lg flex items-center p-4 gap-3"> </div>
+
+            <!-- Calendar Container -->
+            <div class="flex flex-col m-4 gap-4 flex-1 min-h-0">
+                <!-- Date Selection Header -->
+                <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="h-8 w-8 bg-blue-300 rounded-xs flex items-center justify-center">
+                            <mat-icon class="text-blue-600!">event</mat-icon>
+                        </div>
+                        <div class="text-default-font text-xl font-semibold">Stay Duration</div>
+                    </div>
+
+                    <!-- Selected Dates Display -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <span class="text-subtext-color text-sm block mb-1">Check-in:</span>
+                            <span class="font-medium text-default-font text-base">
+                                {{ request().checkInDate || 'Select date' }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-subtext-color text-sm block mb-1">Check-out:</span>
+                            <span class="font-medium text-default-font text-base">
+                                {{ request().checkOutDate || 'Select date' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (hasDateError()) {
+                        <div class="bg-red-50 border border-red-300 rounded-lg p-3 mt-3 flex items-start gap-2">
+                            <mat-icon class="text-red-600 text-xl">error</mat-icon>
+                            <div class="text-red-700 text-sm">
+                                <span class="font-semibold">Check-out date must be after check-in date.</span>
+                                <span class="block mt-1">Please select a different check-out date to continue.</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Calendar Component -->
+                <tinn-date-range-calendar
+                    class="flex flex-1 min-h-0"
+                    [minDate]="minDate"
+                    [initialStartDate]="request().checkInDate"
+                    [initialEndDate]="request().checkOutDate"
+                    (startDateChange)="onCheckInChange($event)"
+                    (endDateChange)="onCheckOutChange($event)">
+                </tinn-date-range-calendar>
+
+                <div class="h-0.25 bg-neutral-200"></div>
+
+                <div class="flex items-center justify-between gap-3">
+                    @if (isStaff()) {
+                        <button type="button" class="brand-error-button" (click)="cancelBooking()">
+                            <mat-icon>close</mat-icon>
+                            Cancel
+                        </button>
+                    }
+                    <button type="button" [disabled]="!isRequestValid()" class="brand-primary-button" (click)="goForwards()">
+                        <mat-icon>arrow_forward</mat-icon>
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

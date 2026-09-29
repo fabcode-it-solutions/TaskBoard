@@ -1,0 +1,298 @@
+<div class="h-dvh bg-neutral-100 flex flex-col md:max-w-[480px] md:mx-auto overflow-hidden">
+    <tinn-mobile-header class="sticky top-0 z-50" [title]="'Today\'s Tasks'" [showBackButton]="true" (backClick)="onBackClick()">
+        <div header-bottom class="bg-white p-4 shadow-md border-b border-neutral-200">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-neutral-600">Progress</span>
+                <span class="text-sm font-bold text-green-600"> {{ completedCount() }} / {{ totalTasks() }} </span>
+            </div>
+
+            <div class="w-full bg-neutral-200 rounded-full h-2">
+                <div class="bg-green-600 h-2 rounded-full transition-all" [style.width.%]="progressPercentage()"> </div>
+            </div>
+
+            @if (progressPercentage() === 100) {
+                <p class="text-sm text-green-600 font-semibold mt-2 text-center"> Great work! All tasks completed! </p>
+            }
+        </div>
+    </tinn-mobile-header>
+
+    @if (loading()) {
+        <div class="flex-1 flex items-center justify-center">
+            <div class="text-center">
+                <mat-icon class="text-6xl text-green-600 animate-pulse mb-4">checklist</mat-icon>
+                <p class="text-body text-neutral-600">Loading your tasks...</p>
+            </div>
+        </div>
+    } @else if (error()) {
+        <div class="flex-1 flex items-center justify-center px-4">
+            <div class="text-center max-w-sm">
+                <mat-icon class="text-6xl text-red-500 mb-4">error_outline</mat-icon>
+                <p class="text-heading-4 mb-2">Failed to Load Tasks</p>
+                <p class="text-body text-neutral-600 mb-4">{{ error()?.message }}</p>
+                <button type="button" (click)="ngOnInit()" class="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center gap-2 mx-auto">
+                    <mat-icon>refresh</mat-icon>
+                    Try Again
+                </button>
+            </div>
+        </div>
+    } @else if (totalTasks() === 0) {
+        <div class="flex-1 flex items-center justify-center px-4">
+            <div class="text-center">
+                <mat-icon class="text-6xl text-green-500 mb-4">task_alt</mat-icon>
+                <p class="text-heading-4 mb-2">No Tasks Today</p>
+                <p class="text-body text-neutral-600">You don't have any tasks scheduled for today.</p>
+            </div>
+        </div>
+    } @else {
+        <div
+            #timelineContainer
+            class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden touch-action-pan-y"
+            (touchstart)="onTimelineContainerTouchStart($event)"
+            (touchmove)="onTimelineContainerTouchMove($event)"
+            (touchend)="onTimelineContainerTouchEnd($event)">
+            <div class="timeline-grid grid grid-cols-[60px_1fr] relative transition-[height] duration-300 ease-in-out" [style.height.px]="HOURS.length * HOUR_HEIGHT()">
+                <div class="col-start-1 border-r border-neutral-200 bg-neutral-50 sticky left-0 z-30">
+                    @for (hour of HOURS; track hour) {
+                        <div class="relative border-b border-neutral-200" [style.height.px]="HOUR_HEIGHT()">
+                            <span class="absolute top-1 right-2 text-xs text-neutral-500 font-medium">{{ formatHourLabel(hour) }}</span>
+                            <!-- 30-minute mark -->
+                            @if (show30MinMarks()) {
+                                <span class="absolute right-2 text-[0.65rem] text-neutral-400" [style.top.px]="HOUR_HEIGHT() / 2 - 6">:30</span>
+                            }
+                            <!-- 10-minute marks -->
+                            @if (show10MinMarks()) {
+                                <span class="absolute right-2 text-[0.6rem] text-neutral-300" [style.top.px]="HOUR_HEIGHT() / 6 - 5">:10</span>
+                                <span class="absolute right-2 text-[0.6rem] text-neutral-300" [style.top.px]="(HOUR_HEIGHT() / 6) * 2 - 5">:20</span>
+                                <span class="absolute right-2 text-[0.6rem] text-neutral-300" [style.top.px]="(HOUR_HEIGHT() / 6) * 4 - 5">:40</span>
+                                <span class="absolute right-2 text-[0.6rem] text-neutral-300" [style.top.px]="(HOUR_HEIGHT() / 6) * 5 - 5">:50</span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="col-start-2 relative bg-white">
+                    <!-- Hour Grid Lines -->
+                    @for (hour of HOURS; track hour) {
+                        <div class="absolute left-0 right-0 h-px bg-neutral-100 pointer-events-none" [style.top.px]="hour * HOUR_HEIGHT()"></div>
+                        @if (show30MinMarks()) {
+                            <div class="absolute left-0 right-0 h-px bg-neutral-100/70 pointer-events-none" [style.top.px]="hour * HOUR_HEIGHT() + HOUR_HEIGHT() / 2"></div>
+                        }
+                        @if (show10MinMarks()) {
+                            <div class="absolute left-0 right-0 h-px bg-neutral-100/50 pointer-events-none" [style.top.px]="hour * HOUR_HEIGHT() + HOUR_HEIGHT() / 6"></div>
+                            <div class="absolute left-0 right-0 h-px bg-neutral-100/50 pointer-events-none" [style.top.px]="hour * HOUR_HEIGHT() + (HOUR_HEIGHT() / 6) * 2"></div>
+                            <div class="absolute left-0 right-0 h-px bg-neutral-100/50 pointer-events-none" [style.top.px]="hour * HOUR_HEIGHT() + (HOUR_HEIGHT() / 6) * 4"></div>
+                            <div class="absolute left-0 right-0 h-px bg-neutral-100/50 pointer-events-none" [style.top.px]="hour * HOUR_HEIGHT() + (HOUR_HEIGHT() / 6) * 5"></div>
+                        }
+                    }
+
+                    <div class="current-time-indicator absolute left-0 right-0 h-0.5 z-20 pointer-events-none" [style.top.px]="currentTimeOffset()">
+                        <div class="absolute -left-1.5 -top-[5px] w-3 h-3 bg-red-500 border-2 border-white rounded-full shadow-sm"></div>
+                        <div class="absolute left-0 right-0 h-0.5 bg-red-500 shadow-sm"></div>
+                        <span class="absolute left-2 -top-2 text-xs font-semibold text-red-500 bg-white px-1 rounded">{{ formatCurrentTime() }}</span>
+                    </div>
+
+                    @for (group of taskOverlapGroups(); track group.startOffset; let groupIndex = $index) {
+                        @if (group.tasks.length === 1) {
+                            @let taskWithPos = group.tasks[0];
+                            <div
+                                class="task-block absolute left-2 right-2 border-l-4 p-2 cursor-pointer transition-all duration-300 z-10 shadow-sm overflow-hidden hover:shadow-md hover:scale-[1.02] hover:z-[15] active:scale-[0.98]"
+                                [style.top.px]="taskWithPos.top"
+                                [style.height.px]="taskWithPos.height"
+                                [style.border-left-color]="getStatusColor(taskWithPos.task.status)"
+                                [style.background-color]="getStatusColor(taskWithPos.task.status) + 'E6'"
+                                (click)="onTaskClick(taskWithPos.task)">
+                                <div class="h-full flex flex-col">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="text-sm font-bold text-white m-0"> Room {{ taskWithPos.task.roomNumber }}</h4>
+                                    </div>
+                                    <div class="flex items-center gap-1 mb-1">
+                                        <mat-icon class="text-white!">{{ getTaskTypeIcon(taskWithPos.task.taskType) }} </mat-icon>
+                                        <span class="text-xs text-white!">{{ getTaskTypeLabel(taskWithPos.task.taskType) }}</span>
+                                    </div>
+                                    <div class="text-[0.7rem] text-white/90 mt-auto">{{ formatScheduledTime(taskWithPos.task) }} </div>
+                                </div>
+                            </div>
+                        } @else {
+                            <!-- Multiple overlapping tasks -->
+                            @if (!group.isExpanded) {
+                                <!-- Collapsed: Show as stack -->
+                                <div class="task-stack absolute left-2 right-2 cursor-pointer z-10 h-24 overflow-visible" [style.top.px]="group.startOffset" (click)="toggleGroupExpansion(groupIndex)">
+                                    @for (taskWithPos of group.tasks.slice(0, 3); track taskWithPos.task.id; let taskIndex = $index) {
+                                        <div
+                                            class="task-block-stacked absolute left-0 right-0 top-0 h-auto min-h-20 rounded-lg border-l-4 p-2 transition-all duration-300 pointer-events-none"
+                                            [class.stack-offset-1]="taskIndex === 1"
+                                            [class.stack-offset-2]="taskIndex === 2"
+                                            [style.border-left-color]="getStatusColor(taskWithPos.task.status)"
+                                            [style.background-color]="getStatusColor(taskWithPos.task.status) + 'E6'">
+                                            <div class="h-full flex flex-col">
+                                                <div class="flex justify-between items-start gap-1 mb-1">
+                                                    <div class="flex items-center gap-1">
+                                                        <h4 class="text-sm font-bold text-white m-0"> Room {{ taskWithPos.task.roomNumber }}</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-1 mb-1">
+                                                    <mat-icon class="text-white">{{ getTaskTypeIcon(taskWithPos.task.taskType) }} </mat-icon>
+                                                    <span class="text-xs text-white">{{ getTaskTypeLabel(taskWithPos.task.taskType) }}</span>
+                                                </div>
+                                                <div class="text-[0.7rem] text-white/90 mt-auto">{{ formatScheduledTime(taskWithPos.task) }} </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <!-- Count Badge -->
+                                    <div class="absolute top-2 right-2 bg-black/75 text-white px-2.5 py-1 rounded-xl text-[0.7rem] font-semibold flex items-center gap-1 shadow-md z-20">
+                                        <mat-icon>layers</mat-icon>
+                                        {{ group.tasks.length }} tasks
+                                    </div>
+                                </div>
+                            } @else {
+                                <!-- Expanded: Show as grid -->
+                                <div
+                                    class="task-stack-expanded absolute left-2 right-2 bg-neutral-50 border-2 border-neutral-200 rounded-xl p-3 z-[15] shadow-lg animate-slideDown"
+                                    [style.top.px]="group.startOffset"
+                                    [style.min-height.px]="group.endOffset - group.startOffset">
+                                    <!-- Collapse button -->
+                                    <div class="flex justify-end">
+                                        <button
+                                            type="button"
+                                            class="flex items-center gap-1 px-3 py-1.5 bg-white border border-neutral-300 rounded-lg text-xs font-semibold text-neutral-700 cursor-pointer mb-3 transition-all duration-200 hover:bg-neutral-100 hover:border-neutral-400 active:scale-[0.98]"
+                                            (click)="toggleGroupExpansion(groupIndex)">
+                                            <mat-icon>unfold_less</mat-icon>
+                                            Collapse
+                                        </button>
+                                    </div>
+
+                                    <!-- Task grid -->
+                                    <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+                                        @for (taskWithPos of group.tasks; track taskWithPos.task.id) {
+                                            <div
+                                                class="task-block-expanded relative rounded-lg border-l-4 p-2 min-h-[100px] cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                                                [style.border-left-color]="getStatusColor(taskWithPos.task.status)"
+                                                [style.background-color]="getStatusColor(taskWithPos.task.status) + 'E6'"
+                                                (click)="onTaskClick(taskWithPos.task)">
+                                                <div class="h-full flex flex-col">
+                                                    <div class="flex justify-between items-start gap-1 mb-1">
+                                                        <div class="flex items-center gap-1">
+                                                            <h4 class="text-sm font-bold text-white m-0"> Room {{ taskWithPos.task.roomNumber }}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center gap-1 mb-1">
+                                                        <mat-icon class="text-white!">{{ getTaskTypeIcon(taskWithPos.task.taskType) }} </mat-icon>
+                                                        <span class="text-xs text-white">{{ getTaskTypeLabel(taskWithPos.task.taskType) }}</span>
+                                                    </div>
+                                                    <div class="text-[0.7rem] text-white/90 mt-auto">{{ formatScheduledTime(taskWithPos.task) }} </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed bottom-20 right-4 flex flex-col gap-2 z-40 md:right-[calc((100vw-480px)/2+16px)]">
+            <button
+                type="button"
+                (click)="zoomIn()"
+                class="w-11 h-11 rounded-full bg-white shadow-md border border-neutral-200 flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-neutral-100 hover:shadow-lg active:scale-95 active:bg-neutral-200 p-0"
+                aria-label="Zoom in">
+                <mat-icon>add</mat-icon>
+            </button>
+            <button
+                type="button"
+                (click)="resetZoom()"
+                class="w-11 h-11 rounded-full bg-white shadow-md border border-neutral-200 flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-neutral-100 hover:shadow-lg active:scale-95 active:bg-neutral-200 p-0"
+                aria-label="Reset zoom">
+                <mat-icon>restart_alt</mat-icon>
+            </button>
+            <button
+                type="button"
+                (click)="zoomOut()"
+                class="w-11 h-11 rounded-full bg-white shadow-md border border-neutral-200 flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-neutral-100 hover:shadow-lg active:scale-95 active:bg-neutral-200 p-0"
+                aria-label="Zoom out">
+                <mat-icon>remove</mat-icon>
+            </button>
+        </div>
+    }
+
+    @if (selectedTask()) {
+        <div class="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-1000 animate-fadeIn" (click)="closeTaskModal()">
+            <div class="bg-white rounded-t-2xl md:rounded-2xl w-full max-w-[480px] max-h-[80vh] md:max-h-[90vh] overflow-y-auto animate-slideUp" (click)="$event.stopPropagation()">
+                <div class="p-5 border-b border-neutral-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Room {{ selectedTask()!.roomNumber }}</h3>
+                        <button type="button" (click)="closeTaskModal()" class="text-neutral-600 hover:text-neutral-900">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-2 text-sm text-neutral-600">
+                            <mat-icon class="text-neutral-500">schedule</mat-icon>
+                            <span>{{ formatScheduledTime(selectedTask()!) }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-neutral-600">
+                            <mat-icon class="text-neutral-500">{{ getTaskTypeIcon(selectedTask()!.taskType) }} </mat-icon>
+                            <span>{{ getTaskTypeLabel(selectedTask()!.taskType) }}</span>
+                        </div>
+                        @if (selectedTask()!.roomStatus) {
+                            <div class="flex items-center gap-2">
+                                <mat-icon class="text-neutral-500">hotel</mat-icon>
+                                <span class="text-sm text-neutral-600">Room Status:</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold" [ngClass]="getRoomStatusBadgeClass(selectedTask()!.roomStatus!)">
+                                    {{ getRoomStatusLabel(selectedTask()!.roomStatus!) }}
+                                </span>
+                            </div>
+                        }
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-neutral-600">Task Status:</span>
+                            <span
+                                class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.65rem] font-semibold uppercase whitespace-nowrap"
+                                [style.background-color]="getStatusColor(selectedTask()!.status) + '30'"
+                                [style.color]="getStatusColor(selectedTask()!.status)">
+                                {{ getStatusLabel(selectedTask()!.status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (selectedTask()!.notes) {
+                        <div class="mt-4 p-3 bg-neutral-50 rounded-lg">
+                            <p class="text-sm text-neutral-600 italic">{{ selectedTask()!.notes }}</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="p-5 flex gap-3 flex-wrap">
+                    <button type="button" (click)="navigateToMap(selectedTask()!)" class="flex-1 px-4 py-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                        <mat-icon>map</mat-icon>
+                        View on Map
+                    </button>
+
+                    @if (selectedTask()!.status === TaskStatus.PENDING) {
+                        <button
+                            type="button"
+                            (click)="startCleaning(selectedTask()!)"
+                            class="flex-1 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <mat-icon>play_arrow</mat-icon>
+                            Start Cleaning
+                        </button>
+                        <button type="button" (click)="skipCleaning(selectedTask()!)" class="flex-1 px-4 py-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <mat-icon>block</mat-icon>
+                            Skip
+                        </button>
+                    } @else if (selectedTask()!.status === TaskStatus.IN_PROGRESS) {
+                        <button
+                            type="button"
+                            (click)="finishCleaning(selectedTask()!)"
+                            class="flex-1 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                            <mat-icon>check</mat-icon>
+                            Finish
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

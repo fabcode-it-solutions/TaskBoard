@@ -1,0 +1,138 @@
+<div class="min-h-screen p-8 bg-neutral-50">
+    <tinn-page-header [title]="'Overview Dashboard'" [subtitle]="'Overview of hotel operations and key metrics'" [icon]="'dashboard'"> </tinn-page-header>
+
+    <!-- Refresh Button -->
+    <div class="flex justify-end mb-6">
+        <button (click)="refreshDashboard()" [disabled]="isLoading()" class="brand-primary-button disabled:opacity-50 disabled:cursor-not-allowed">
+            <mat-icon class="text-sm">refresh</mat-icon>
+            <span class="text-body-bold">Refresh Data</span>
+        </button>
+    </div>
+
+    <!-- KPI (Key performance indicator) Cards Grid -->
+    <div class="grid grid-cols-4 gap-6 mb-8">
+        @for (card of statsCards; track card.title) {
+            <tinn-stats-card [title]="card.title" [value]="card.value()" [icon]="card.icon" [suffix]="card.suffix" [color]="card.color" [isLoading]="isLoading()"> </tinn-stats-card>
+        }
+    </div>
+
+    <!-- Floor Occupancy Section -->
+    <div class="bg-white border border-neutral-200 rounded-xs p-6 shadow-sm mb-8">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xs bg-brand-100 flex items-center justify-center">
+                <mat-icon class="text-brand-600">apartment</mat-icon>
+            </div>
+            <h2 class="text-heading-2 text-default-font font-bold">Floor Occupancy Distribution</h2>
+        </div>
+
+        @if (floorOccupancy().length === 0) {
+            <div class="text-center py-12 text-subtext-color">
+                <mat-icon class="text-6xl mb-2">info</mat-icon>
+                <p class="text-body">No floor occupancy data available</p>
+            </div>
+        } @else {
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="border-b border-neutral-200">
+                        <tr>
+                            <th class="text-left py-3 px-4 text-caption-bold text-subtext-color font-semibold">Floor</th>
+                            <th class="text-left py-3 px-4 text-caption-bold text-subtext-color font-semibold">Total Rooms</th>
+                            <th class="text-left py-3 px-4 text-caption-bold text-subtext-color font-semibold">Occupied</th>
+                            <th class="text-left py-3 px-4 text-caption-bold text-subtext-color font-semibold">Available</th>
+                            <th class="text-left py-3 px-4 text-caption-bold text-subtext-color font-semibold">Occupancy Rate</th>
+                            <th class="py-3 px-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (floor of floorOccupancy(); track floor.floor) {
+                            <tr class="border-b border-neutral-200">
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-xs bg-brand-100 flex items-center justify-center">
+                                            <span class="text-body-bold text-brand-600">{{ floor.floor }}</span>
+                                        </div>
+                                        <span class="text-body text-default-font">Floor {{ floor.floor }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 text-body text-default-font">{{ floor.totalRooms }}</td>
+                                <td class="py-4 px-4 text-body text-default-font">{{ floor.occupiedRooms }}</td>
+                                <td class="py-4 px-4 text-body text-default-font">{{ floor.totalRooms - floor.occupiedRooms }}</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex-1 bg-neutral-200 rounded-full h-2 overflow-hidden">
+                                            <div class="h-full bg-brand-500 transition-all duration-300" [style.width.%]="floor.occupancyRate"> </div>
+                                        </div>
+                                        <span class="text-body-bold text-brand-600 min-w-[3rem]">{{ floor.occupancyRate | number: '1.0-1' }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Open Maintenance Tickets Section -->
+    <div class="bg-white border border-neutral-200 rounded-xs p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xs bg-warning-100 flex items-center justify-center">
+                    <mat-icon class="text-warning-600">build</mat-icon>
+                </div>
+                <h2 class="text-heading-2 text-default-font font-bold">Open Maintenance Tickets</h2>
+            </div>
+            <span class="text-caption text-subtext-color">{{ openTickets().length }} total</span>
+        </div>
+
+        @if (openTickets().length === 0) {
+            <div class="text-center py-12 text-subtext-color">
+                <mat-icon class="text-6xl mb-2">check_circle</mat-icon>
+                <p class="text-body">No open maintenance tickets</p>
+                <p class="text-caption mt-1">All systems are running smoothly!</p>
+            </div>
+        } @else {
+            <div class="space-y-3">
+                @for (ticket of openTickets(); track ticket.id) {
+                    <div class="border border-neutral-200 rounded-xs p-4 hover:shadow-sm transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-caption-bold" [ngClass]="getStatusBgColor(ticket.priority) + ' ' + getStatusColor(ticket.priority)">
+                                        {{ ticket.priority }}
+                                    </span>
+                                    <span class="text-caption text-subtext-color">Ticket #{{ ticket.id }}</span>
+                                </div>
+                                <h3 class="text-body-bold text-default-font mb-1">{{ ticket.title }}</h3>
+                                <p class="text-caption text-subtext-color line-clamp-2">{{ ticket.description }}</p>
+                                @if (ticket.roomNumber) {
+                                    <div class="flex items-center gap-1 mt-2 text-caption text-subtext-color">
+                                        <mat-icon class="text-sm">location_on</mat-icon>
+                                        <span>Room {{ ticket.roomNumber }}</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="ml-4">
+                                @if (ticket.status === 'OPEN') {
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-error-50 text-error-600 rounded-xs text-caption-bold">
+                                        <mat-icon class="text-sm">error</mat-icon>
+                                        Open
+                                    </span>
+                                } @else if (ticket.status === 'IN_PROGRESS') {
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-warning-50 text-warning-600 rounded-xs text-caption-bold">
+                                        <mat-icon class="text-sm">pending</mat-icon>
+                                        In Progress
+                                    </span>
+                                } @else {
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-neutral-100 text-neutral-600 rounded-xs text-caption-bold">
+                                        {{ ticket.status }}
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

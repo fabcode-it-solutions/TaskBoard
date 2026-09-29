@@ -1,0 +1,114 @@
+<div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <!-- Header -->
+    <div class="bg-linear-to-br from-brand-primary to-brand-600 px-6 py-6 text-center shrink-0">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xl font-bold text-white flex-1">{{ dialogTitle }}</h2>
+            <button type="button" (click)="onCancel()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20 active:bg-white/30 transition-colors">
+                <mat-icon class="text-white! text-lg">close</mat-icon>
+            </button>
+        </div>
+        <p class="text-sm text-white/95">
+            {{ isEditMode ? 'Update item details and stock levels' : 'Add a new item to the minibar inventory' }}
+        </p>
+    </div>
+
+    <!-- Form Content -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-6 overflow-y-auto flex-1">
+        <div class="space-y-5">
+            <!-- Item Name -->
+            <div>
+                <label class="form-field-label">
+                    Item Name
+                    <tinn-mandatory-mark />
+                </label>
+                <input type="text" formControlName="name" placeholder="e.g., Coca Cola 0.33L" class="form-field bg-neutral-100!" />
+                @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+                    <span class="form-field-error">Item name is required</span>
+                } @else if (form.get('name')?.hasError('maxlength')) {
+                    <span class="form-field-error">Item name must not exceed 100 characters</span>
+                }
+            </div>
+
+            <!-- Category and Unit of Measurement Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Category -->
+                <div>
+                    <label class="form-field-label">Category</label>
+                    <input type="text" formControlName="category" placeholder="e.g., Beverages, Snacks" class="form-field bg-neutral-100!" />
+                    @if (form.get('category')?.hasError('maxlength')) {
+                        <span class="form-field-error">Category must not exceed 100 characters</span>
+                    }
+                </div>
+
+                <!-- Unit of Measurement -->
+                <div>
+                    <label class="form-field-label">Unit of Measurement</label>
+                    <input type="text" formControlName="unitOfMeasurement" placeholder="e.g., bottle, piece, can" class="form-field bg-neutral-100!" />
+                    @if (form.get('unitOfMeasurement')?.hasError('maxlength')) {
+                        <span class="form-field-error">Unit must not exceed 50 characters</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Unit Price -->
+            <div>
+                <label class="form-field-label">
+                    Unit Price (€)
+                    <tinn-mandatory-mark />
+                </label>
+                <input type="number" formControlName="unitPrice" placeholder="0.00" step="0.01" class="form-field bg-neutral-100!" />
+                @if (form.get('unitPrice')?.hasError('required') && form.get('unitPrice')?.touched) {
+                    <span class="form-field-error">Unit price is required</span>
+                } @else if (form.get('unitPrice')?.hasError('min')) {
+                    <span class="form-field-error">Unit price must be at least €0.01</span>
+                }
+            </div>
+
+            <!-- Stock Levels Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Current Stock -->
+                <div>
+                    <label class="form-field-label">
+                        Current Stock
+                        <tinn-mandatory-mark />
+                    </label>
+                    <input type="number" formControlName="currentStock" placeholder="0" step="1" class="form-field bg-neutral-100!" />
+                    @if (form.get('currentStock')?.hasError('required') && form.get('currentStock')?.touched) {
+                        <span class="form-field-error">Current stock is required</span>
+                    } @else if (form.get('currentStock')?.hasError('min')) {
+                        <span class="form-field-error">Current stock cannot be negative</span>
+                    }
+                </div>
+
+                <!-- Reorder Stock Level -->
+                <div>
+                    <label class="form-field-label">Reorder Stock Level</label>
+                    <input type="number" formControlName="reorderStock" placeholder="0" step="1" class="form-field bg-neutral-100!" />
+                    @if (form.get('reorderStock')?.hasError('min')) {
+                        <span class="form-field-error">Reorder stock cannot be negative</span>
+                    }
+                    <p class="text-xs text-neutral-500 mt-1">Stock level at which to reorder items</p>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Actions -->
+    <div class="p-6 border-t border-neutral-200 shrink-0">
+        <div class="flex gap-3">
+            <button type="button" (click)="onCancel()" class="brand-neutral-button flex-1" [disabled]="loading">
+                <mat-icon>close</mat-icon>
+                Cancel
+            </button>
+            <button type="submit" (click)="onSubmit()" class="brand-primary-button flex-1" [disabled]="loading || form.invalid">
+                @if (loading) {
+                    <mat-icon class="animate-spin">refresh</mat-icon>
+                    <span>Saving...</span>
+                } @else {
+                    <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                    <span>{{ isEditMode ? 'Update Item' : 'Create Item' }}</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>

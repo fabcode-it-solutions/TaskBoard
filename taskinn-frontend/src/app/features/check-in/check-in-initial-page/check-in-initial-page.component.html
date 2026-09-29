@@ -1,0 +1,43 @@
+<div class="h-screen flex justify-center p-8">
+    <div class="min-w-xl">
+        <tinn-page-header [title]="'Check-in'" [subtitle]="'Enter Booking ID to proceed'" [icon]="'confirmation_number'"></tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+            <div class="bg-brand-primary rounded-t-lg flex items-center p-4 gap-3">
+                <mat-icon class="text-white!">confirmation_number</mat-icon>
+                <div class="text-white text-lg">Booking Details</div>
+            </div>
+
+            <div class="flex flex-col m-4 gap-4">
+                <form [formGroup]="bookingForm" class="flex flex-col gap-4" (ngSubmit)="onSubmit()">
+                    <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm pt-2">
+                        <div class="flex items-start gap-10 px-4">
+                            <div class="mb-4 flex-1">
+                                <label class="form-field-label">Booking ID<tinn-mandatory-mark /></label>
+                                <input type="text" class="form-field bg-neutral-100!" formControlName="bookingId" placeholder="12123" required />
+                                @if (bookingForm.get('bookingId')?.hasError('required') && bookingForm.get('bookingId')?.touched) {
+                                    <span class="form-field-error">Booking ID is required</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="h-0.25 bg-neutral-200"></div>
+                    @if (errorMsg) {
+                        <div class="form-field-error mb-2">{{ errorMsg }}</div>
+                    }
+                    <div class="flex justify-between gap-4">
+                        <button type="button" class="brand-neutral-button" (click)="onClickBack()">
+                            <mat-icon>arrow_back</mat-icon>
+                            Back
+                        </button>
+                        <button type="submit" [disabled]="loading() || bookingForm.invalid" class="brand-primary-button">
+                            <mat-icon>arrow_forward</mat-icon>
+                            Confirm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

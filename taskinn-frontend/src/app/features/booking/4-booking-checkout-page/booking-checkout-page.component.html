@@ -1,0 +1,219 @@
+<div class="min-h-screen flex justify-center p-4">
+    <div class="w-full max-w-4xl">
+        <tinn-page-header [title]="'Complete Your Booking'" [subtitle]="'Review your booking details and provide your information'" [icon]="'shopping_cart'"> </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+            <!-- Header -->
+            <div class="bg-brand-primary h-14 rounded-t-lg flex items-center p-4 gap-3"></div>
+
+            <!-- Content Container -->
+            <div class="flex flex-col m-4 gap-4">
+                <!-- Booking Summary -->
+                <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <mat-icon class="text-brand-primary">receipt</mat-icon>
+                        <h3 class="text-default-font text-lg font-semibold">Booking Summary</h3>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Dates -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Check-in:</span>
+                            <span class="text-default-font font-medium">{{ request().checkInDate }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Check-out:</span>
+                            <span class="text-default-font font-medium">{{ request().checkOutDate }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Nights:</span>
+                            <span class="text-default-font font-medium">{{ bookingSummary().nights }}</span>
+                        </div>
+
+                        <div class="border-t border-neutral-300 my-2"></div>
+
+                        <!-- Guests -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Adults:</span>
+                            <span class="text-default-font font-medium">{{ request().numAdults }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-subtext-color">Children:</span>
+                            <span class="text-default-font font-medium">{{ request().numChildren }}</span>
+                        </div>
+
+                        <div class="border-t border-neutral-300 my-2"></div>
+
+                        <!-- Selected Rooms -->
+                        <div>
+                            <div class="text-subtext-color mb-2">Selected Rooms:</div>
+                            @if (isStaff()) {
+                                <!-- Manual booking: show individual rooms -->
+                                @for (room of bookingSummary().rooms; track $index) {
+                                    <div class="flex justify-between items-center bg-neutral-100 rounded-xs px-3 py-2 mb-2 border border-neutral-300">
+                                        <div class="flex items-center gap-2">
+                                            <mat-icon class="text-brand-primary text-sm">king_bed</mat-icon>
+                                            <span class="text-default-font font-medium">Room {{ room.roomNumber }}</span>
+                                            <span class="text-subtext-color text-sm">- {{ room.roomType.name }}</span>
+                                        </div>
+                                        <span class="text-brand-primary font-bold">{{ room.pricePerNight | number: '1.2-2' }}€ / night</span>
+                                    </div>
+                                }
+                            } @else {
+                                <!-- Customer booking: show room types with quantities -->
+                                @for (room of bookingSummary().rooms; track $index) {
+                                    <div class="flex justify-between items-center bg-neutral-100 rounded-xs px-3 py-2 mb-2 border border-neutral-300">
+                                        <div class="flex items-center gap-2">
+                                            <mat-icon class="text-brand-primary text-sm">king_bed</mat-icon>
+                                            <span class="text-default-font font-medium">{{ room.roomType.name }}</span>
+                                            <span class="text-subtext-color text-sm">× {{ room.quantity }}</span>
+                                        </div>
+                                        <span class="text-brand-primary font-bold">{{ room.pricePerNight | number: '1.2-2' }}€ / night</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        @if (earlyCheckIn() || lateCheckOut()) {
+                            <div class="border-t border-neutral-300 my-2"></div>
+
+                            <!-- Additional Fees -->
+                            <div>
+                                <div class="text-subtext-color mb-2">Additional Services:</div>
+                                @if (earlyCheckIn()) {
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-default-font">Early Check-in</span>
+                                        <span class="text-brand-primary font-medium">{{ earlyCheckInFee() | number: '1.2-2' }}€</span>
+                                    </div>
+                                }
+                                @if (lateCheckOut()) {
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-default-font">Late Check-out</span>
+                                        <span class="text-brand-primary font-medium">{{ lateCheckOutFee() | number: '1.2-2' }}€</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="border-t border-neutral-300 my-2"></div>
+
+                        <!-- Total -->
+                        <div class="flex justify-between items-center text-lg">
+                            <span class="text-default-font font-bold">Total Price:</span>
+                            <span class="text-brand-primary font-bold text-2xl">{{ bookingSummary().totalPrice | number: '1.2-2' }}€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guest Information Form -->
+                <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <mat-icon class="text-brand-primary">person</mat-icon>
+                        <h3 class="text-default-font text-lg font-semibold">Guest Information</h3>
+                    </div>
+
+                    <form [formGroup]="guestInfoForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- First Name -->
+                            <div>
+                                <label class="block text-default-font text-sm font-medium mb-1"> First Name <span class="text-red-500">*</span> </label>
+                                <input
+                                    type="text"
+                                    formControlName="firstName"
+                                    class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-neutral-400 placeholder:italic"
+                                    placeholder="John" />
+                                @if (guestInfoForm.get('firstName')?.invalid && guestInfoForm.get('firstName')?.touched) {
+                                    <div class="text-red-500 text-sm mt-1">{{ getFieldError('firstName') }}</div>
+                                }
+                            </div>
+
+                            <!-- Last Name -->
+                            <div>
+                                <label class="block text-default-font text-sm font-medium mb-1"> Last Name <span class="text-red-500">*</span> </label>
+                                <input
+                                    type="text"
+                                    formControlName="lastName"
+                                    class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-neutral-400 placeholder:italic"
+                                    placeholder="Doe" />
+                                @if (guestInfoForm.get('lastName')?.invalid && guestInfoForm.get('lastName')?.touched) {
+                                    <div class="text-red-500 text-sm mt-1">{{ getFieldError('lastName') }}</div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div>
+                            <label class="block text-default-font text-sm font-medium mb-1"> Date of Birth <span class="text-red-500">*</span> </label>
+                            <input
+                                type="date"
+                                formControlName="dateOfBirth"
+                                (input)="onDateOfBirthInput($event)"
+                                (blur)="onDateOfBirthInput($event)"
+                                class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-neutral-400 placeholder:italic" />
+                            @if (guestInfoForm.get('dateOfBirth')?.invalid && guestInfoForm.get('dateOfBirth')?.touched) {
+                                <div class="text-red-500 text-sm mt-1">{{ getFieldError('dateOfBirth') }}</div>
+                            }
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-default-font text-sm font-medium mb-1"> Email <span class="text-red-500">*</span> </label>
+                            <input
+                                type="email"
+                                formControlName="email"
+                                class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-neutral-400 placeholder:italic"
+                                placeholder="john.doe@example.com" />
+                            @if (guestInfoForm.get('email')?.invalid && guestInfoForm.get('email')?.touched) {
+                                <div class="text-red-500 text-sm mt-1">{{ getFieldError('email') }}</div>
+                            }
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label class="block text-default-font text-sm font-medium mb-1"> Phone Number </label>
+                            <input
+                                type="tel"
+                                formControlName="phone"
+                                class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary placeholder:text-neutral-400 placeholder:italic"
+                                placeholder="+43 123 456 7890" />
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Error Message -->
+                @if (error()) {
+                    <div class="bg-red-50 border border-red-300 rounded-lg p-4">
+                        <div class="flex items-center gap-3">
+                            <mat-icon class="text-red-600!">error</mat-icon>
+                            <div>
+                                <div class="text-red-600 font-semibold">{{ error()?.message || 'Failed to create booking' }}</div>
+                                <div class="text-red-600 text-sm">Please try again or contact support if the problem persists.</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Action Buttons -->
+                <div class="flex justify-between gap-4 mt-4">
+                    <button (click)="goBack()" class="flex items-center gap-2 px-6 py-3 bg-neutral-300 text-default-font rounded-md hover:bg-neutral-400 transition-colors" [disabled]="loading()">
+                        <mat-icon>arrow_back</mat-icon>
+                        Back
+                    </button>
+
+                    <button
+                        (click)="goForwards()"
+                        class="flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-md hover:bg-brand-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        [disabled]="loading() || !guestInfoForm.valid">
+                        @if (loading()) {
+                            <mat-icon class="animate-spin">refresh</mat-icon>
+                            Processing...
+                        } @else {
+                            <mat-icon>arrow_forward</mat-icon>
+                            {{ isStaff() ? 'Confirm Booking' : 'Go to Payment' }}
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,49 @@
+<div class="h-screen w-64 bg-neutral-100 border-r border-neutral-200 flex flex-col shadow-lg">
+    <!-- User Profile Section -->
+    <div class="p-6 border-b border-neutral-200">
+        <div class="flex items-center gap-3">
+            <!-- Avatar with Initials -->
+            <div class="w-12 h-12 rounded-full bg-brand-primary flex items-center justify-center flex-shrink-0" (click)="resetDatabase()">
+                <span class="text-white font-semibold text-lg">{{ initials() }}</span>
+            </div>
+
+            <!-- User Info -->
+            <div class="flex-1 min-w-0">
+                <div class="text-brand-primary font-semibold text-base truncate">{{ fullName() }}</div>
+                <div class="text-default-font text-sm">{{ primaryRole() }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto py-4">
+        <ul class="space-y-1 px-3">
+            @for (item of filteredNavItems(); track item.route) {
+                <li>
+                    <a [routerLink]="item.route" routerLinkActive="bg-brand-400" class="flex items-center gap-3 px-4 py-3 rounded-xs hover:bg-brand-200 transition-colors group">
+                        <div class="w-10 h-10 rounded-xs bg-green-100 flex items-center justify-center">
+                            <mat-icon>{{ item.icon }}</mat-icon>
+                        </div>
+                        <span class="font-medium">{{ item.label }}</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+
+    @if (showMobileLogin()) {
+        <div class="px-4 py-4">
+            <button (click)="openMobileLogin()" class="w-full flex items-center cursor-pointer gap-3 px-4 py-3 rounded-xs hover:bg-brand-200 transition-colors group">
+                <mat-icon class="text-current">qr_code_2</mat-icon>
+                <span class="font-medium">Mobile Login</span>
+            </button>
+        </div>
+    }
+
+    <div class="p-4 border-t border-neutral-200">
+        <button (click)="onLogout()" class="w-full flex items-center cursor-pointer gap-3 px-4 py-3 rounded-xs hover:bg-error-600 hover:text-white transition-colors group">
+            <mat-icon class="text-current">logout</mat-icon>
+            <span class="font-medium">Logout</span>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="bg-white rounded-xs shadow-sm border border-neutral-200 p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-heading-2 text-neutral-800"> Schedule for {{ formatDate(selectedDate) }} </h2>
+        @if (editing) {
+            <button class="brand-primary-button" (click)="onAddAssignment()" [attr.disabled]="loading || null">
+                <mat-icon class="text-sm">add</mat-icon>
+                <span class="text-sm">Add Assignment</span>
+            </button>
+        }
+    </div>
+
+    @if (hasConstraintViolations()) {
+        <div class="bg-amber-50 border border-amber-200 rounded-xs p-4 mb-4 flex items-start gap-3">
+            <mat-icon class="text-amber-600">warning</mat-icon>
+            <div class="flex-1">
+                <p class="text-body-bold text-amber-900 mb-1">Constraint Violations Detected</p>
+                <p class="text-body text-amber-800">Tasks highlighted in yellow are scheduled outside their specified time constraints. Review and adjust as needed.</p>
+            </div>
+        </div>
+    }
+
+    @if (assignments.length === 0) {
+        <div class="text-center py-12 text-neutral-500">
+            <mat-icon class="text-6xl text-neutral-300">event_busy</mat-icon>
+            <p class="text-body mt-4">No task assignments for this date</p>
+            @if (editing) {
+                <p class="text-caption mt-2">Click "Add Assignment" to create a new task</p>
+            }
+        </div>
+    } @else {
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead class="border-b border-neutral-200">
+                    <tr class="bg-neutral-50">
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Room</th>
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Worker</th>
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Start Time</th>
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">End Time</th>
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Duration</th>
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Task Type</th>
+                        <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Status</th>
+                        @if (editing) {
+                            <th class="px-4 py-3 text-left text-body-bold text-neutral-700">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (assignment of assignments; track $index) {
+                        <tr [class]="assignment.constraintViolated ? 'border-b border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors' : 'border-b border-neutral-100 hover:bg-neutral-50 transition-colors'">
+                            @if (assignment.isEditing) {
+                                <!-- Editing Mode -->
+                                <td class="px-4 py-3">
+                                    <select class="form-field text-sm" [(ngModel)]="assignment.roomId" [attr.disabled]="loading || null">
+                                        @for (room of rooms; track room.id) {
+                                            <option [ngValue]="room.id">{{ room.roomNumber }}</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <select class="form-field text-sm" [(ngModel)]="assignment.employeeId" [attr.disabled]="loading || null">
+                                        @for (employee of schedulableEmployees; track employee.id) {
+                                            <option [ngValue]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input
+                                        class="form-field text-sm"
+                                        type="time"
+                                        [value]="getTimeInputValue(assignment.scheduledStart)"
+                                        (change)="onAssignmentTimeChange(assignment, 'scheduledStart', $any($event.target).value)"
+                                        [attr.disabled]="loading || null" />
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input
+                                        class="form-field text-sm"
+                                        type="time"
+                                        [value]="getTimeInputValue(assignment.scheduledEnd)"
+                                        (change)="onAssignmentTimeChange(assignment, 'scheduledEnd', $any($event.target).value)"
+                                        [attr.disabled]="loading || null" />
+                                </td>
+                                <td class="px-4 py-3 text-body text-neutral-600"> {{ assignment.duration }} min </td>
+                                <td class="px-4 py-3">
+                                    <select class="form-field text-sm" [(ngModel)]="assignment.taskType" [attr.disabled]="loading || null">
+                                        <option value="CHECKOUT_CLEAN">Checkout Clean</option>
+                                        <option value="STAYOVER_CLEAN">Stayover Clean</option>
+                                        <option value="DEEP_CLEAN">Deep Clean</option>
+                                    </select>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <select class="form-field text-sm" [(ngModel)]="assignment.status" [attr.disabled]="loading || null">
+                                        <option [ngValue]="undefined">Not specified</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="BLOCKED">Blocked</option>
+                                    </select>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex gap-2">
+                                        <button class="brand-primary-button text-xs px-2 py-1" (click)="onSaveAssignment($index)" [attr.disabled]="loading || null">
+                                            <mat-icon class="text-xs">check</mat-icon>
+                                        </button>
+                                        <button class="brand-error-button text-xs px-2 py-1" (click)="onRemoveAssignment($index)" [attr.disabled]="loading || null">
+                                            <mat-icon class="text-xs">delete</mat-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                            } @else {
+                                <!-- View Mode -->
+                                <td class="px-4 py-3 text-body text-neutral-800">{{ assignment.roomNumber }}</td>
+                                <td class="px-4 py-3 text-body text-neutral-800">{{ assignment.employeeName }}</td>
+                                <td class="px-4 py-3 text-body text-neutral-600">{{ formatTime(assignment.scheduledStart) }}</td>
+                                <td class="px-4 py-3 text-body text-neutral-600">{{ formatTime(assignment.scheduledEnd) }}</td>
+                                <td class="px-4 py-3 text-body text-neutral-600">{{ assignment.duration }} min</td>
+                                <td class="px-4 py-3 text-body text-neutral-600">{{ formatTaskType(assignment.taskType) }}</td>
+                                <td class="px-4 py-3">
+                                    <span [class]="getStatusBadgeClass(assignment.status)">
+                                        {{ formatTaskStatus(assignment.status) }}
+                                    </span>
+                                </td>
+                                @if (editing) {
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <button class="brand-neutral-button text-xs px-2 py-1" (click)="onEditAssignment($index)" [attr.disabled]="loading || null">
+                                                <mat-icon class="text-xs">edit</mat-icon>
+                                            </button>
+                                            <button class="brand-error-button text-xs px-2 py-1" (click)="onRemoveAssignment($index)" [attr.disabled]="loading || null">
+                                                <mat-icon class="text-xs">delete</mat-icon>
+                                            </button>
+                                        </div>
+                                    </td>
+                                }
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,88 @@
+<div class="bg-white rounded-xs w-full min-w-[400px]">
+    <div class="flex items-center gap-4 p-6 border-b border-neutral-200">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-brand-primary-100">
+            <mat-icon class="w-6 h-6 flex items-center justify-center text-brand-primary">qr_code_2</mat-icon>
+        </div>
+        <h2 class="text-xl font-semibold text-neutral-800">Mobile Login</h2>
+    </div>
+
+    <div class="p-6">
+        @if (state() === 'loading') {
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+                <p class="mt-4 text-neutral-600">Generating QR code...</p>
+            </div>
+        }
+
+        @if (state() === 'qr-display') {
+            <div class="flex flex-col items-center">
+                <p class="text-neutral-600 mb-4 text-center">Scan this QR code with your phone to login on mobile</p>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-neutral-200">
+                    <canvas #qrCanvas></canvas>
+                </div>
+                <p class="mt-4 text-sm text-neutral-500">
+                    Expires in <span class="font-semibold text-brand-primary">{{ countdown() }}s</span>
+                </p>
+            </div>
+        }
+
+        @if (state() === 'confirming') {
+            <div class="flex flex-col items-center py-4">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-warning-100 mb-4">
+                    <mat-icon class="w-8 h-8 flex items-center justify-center text-warning-600 text-3xl">phone_iphone</mat-icon>
+                </div>
+                <h3 class="text-lg font-semibold text-neutral-800 mb-2">Login Attempt Detected</h3>
+                <p class="text-neutral-600 text-center mb-6">A device is trying to login using this QR code. Do you want to allow this?</p>
+                <div class="flex gap-3">
+                    <button type="button" class="brand-neutral-button" (click)="deny()">
+                        <mat-icon>close</mat-icon>
+                        No, Cancel
+                    </button>
+                    <button type="button" class="brand-primary-button" (click)="confirm()">
+                        <mat-icon>check</mat-icon>
+                        Yes, Login
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (state() === 'success') {
+            <div class="flex flex-col items-center py-8">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-success-100 mb-4">
+                    <mat-icon class="w-8 h-8 flex items-center justify-center text-success-600 text-3xl">check_circle</mat-icon>
+                </div>
+                <h3 class="text-lg font-semibold text-neutral-800">Login Successful!</h3>
+                <p class="text-neutral-600">Your phone is now logged in.</p>
+            </div>
+        }
+
+        @if (state() === 'error') {
+            <div class="flex flex-col items-center py-4">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-error-100 mb-4">
+                    <mat-icon class="w-8 h-8 flex items-center justify-center text-error-600 text-3xl">error</mat-icon>
+                </div>
+                <h3 class="text-lg font-semibold text-neutral-800 mb-2">Error</h3>
+                <p class="text-neutral-600 text-center mb-4">{{ errorMessage() }}</p>
+                <button type="button" class="brand-primary-button" (click)="regenerate()">
+                    <mat-icon>refresh</mat-icon>
+                    Try Again
+                </button>
+            </div>
+        }
+    </div>
+
+    @if (state() !== 'success') {
+        <div class="flex justify-end gap-3 p-6 border-t border-neutral-200">
+            @if (state() === 'qr-display') {
+                <button type="button" class="brand-neutral-button" (click)="regenerate()">
+                    <mat-icon>refresh</mat-icon>
+                    Regenerate
+                </button>
+            }
+            <button type="button" class="brand-neutral-button" (click)="close()">
+                <mat-icon>close</mat-icon>
+                Close
+            </button>
+        </div>
+    }
+</div>

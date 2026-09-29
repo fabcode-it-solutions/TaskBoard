@@ -1,0 +1,29 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+// Task Stack (Overlapping Tasks) - Complex transforms that can't be done with Tailwind
+.task-stack {
+    .task-block-stacked {
+        &.stack-offset-1 {
+            transform: translateX(8px) translateY(8px);
+            z-index: -1;
+        }
+
+        &.stack-offset-2 {
+            transform: translateX(16px) translateY(16px);
+            z-index: -2;
+        }
+    }
+
+    &:hover .task-block-stacked {
+        &.stack-offset-1 {
+            transform: translateX(10px) translateY(10px);
+        }
+
+        &.stack-offset-2 {
+            transform: translateX(20px) translateY(20px);
+        }
+    }
+}

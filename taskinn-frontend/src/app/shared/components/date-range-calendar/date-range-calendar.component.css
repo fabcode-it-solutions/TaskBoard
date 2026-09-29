@@ -1,0 +1,148 @@
+@reference "../../../../tailwind.css";
+
+.calendar-container {
+    @apply overflow-y-auto overflow-x-hidden;
+    scrollbar-width: thin;
+}
+
+/* Scrollbar */
+.calendar-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.calendar-container::-webkit-scrollbar-track {
+    @apply bg-neutral-200 rounded-full;
+}
+
+.calendar-container::-webkit-scrollbar-thumb {
+    @apply bg-neutral-400 rounded-full;
+}
+
+.calendar-container::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-500;
+}
+
+/* Normal day */
+.calendar-day {
+    @apply aspect-square
+    flex items-center justify-center
+    rounded-xs
+    text-default-font
+    transition-all duration-200
+    relative;
+}
+
+.calendar-day.other-month {
+    @apply text-neutral-400
+    cursor-not-allowed;
+}
+
+.calendar-day.disabled {
+    @apply text-neutral-300
+    cursor-not-allowed
+    bg-neutral-50;
+}
+
+.calendar-day.enabled {
+    @apply cursor-pointer
+    bg-neutral-200
+    hover:bg-neutral-300
+    hover:shadow-md
+    hover:scale-105;
+}
+
+.calendar-day.today {
+    @apply font-bold
+    ring-2 ring-brand-primary ring-inset;
+}
+
+/* Range days (user input) */
+.calendar-day.range-start,
+.calendar-day.range-end {
+    @apply bg-brand-400
+    border-brand-600
+    text-white!
+    font-bold
+    scale-x-[1.09]
+    hover:bg-brand-500;
+}
+
+.calendar-day.range-start {
+    @apply rounded-r-none
+    scale-x-[1.09]
+    border-l
+    border-t
+    border-b;
+}
+
+.calendar-day.range-end {
+    @apply rounded-l-none
+    scale-x-[1.09]
+    border-r
+    border-t
+    border-b;
+}
+
+.calendar-day.in-range {
+    @apply bg-brand-100
+    text-brand-primary
+    rounded-none
+    font-medium
+    scale-x-[1.09]
+    border-t
+    border-b;
+}
+
+/* Interval days (system input) */
+.calendar-day.interval-start,
+.calendar-day.interval-end {
+    @apply bg-brand-200
+    text-brand-700
+    font-semibold
+    hover:bg-brand-300;
+}
+
+.calendar-day.interval-start {
+    @apply rounded-r-none
+    scale-x-[1.09]
+    border-l
+    border-t
+    border-b;
+}
+
+.calendar-day.interval-end {
+    @apply rounded-l-none
+    scale-x-[1.09]
+    border-r
+    border-t
+    border-b;
+}
+
+.calendar-day.in-interval {
+    @apply bg-brand-100
+    text-brand-600
+    rounded-none
+    border-t
+    border-b
+    scale-x-[1.09]
+    hover:bg-brand-200;
+}
+
+/* Shift days (work schedule) */
+.calendar-day.shift-day {
+    @apply bg-red-200
+    text-red-800
+    font-semibold
+    hover:bg-red-300;
+}
+
+.calendar-day.shift-day.interval-start,
+.calendar-day.shift-day.interval-end,
+.calendar-day.shift-day.in-interval {
+    @apply bg-brand-200
+    text-brand-700;
+}
+
+.day-number {
+    @apply relative z-10;
+}

@@ -1,0 +1,45 @@
+<div class="min-h-screen flex justify-center p-8">
+    <div>
+        <div class="mb-8">
+            <tinn-page-header title="Parameters" subtitle="" icon="settings" />
+        </div>
+        <table>
+            @for (setting of settings; track $index) {
+                @let settingDef = setting[1];
+                <tr>
+                    <td class="px-2 font-bold">
+                        <span class="inline-flex">
+                            {{ settingDef.namespace.replaceAll('_', ' ') }}
+                            <mat-icon>chevron_right</mat-icon>
+                            {{ settingDef.name.replaceAll('_', ' ') }}
+                        </span>
+                    </td>
+                    <td class="px-1 text-center">
+                        @if (settingDef.kind === 'NUMBER') {
+                            <input
+                                type="number"
+                                class="w-full px-2 py-1 bg-neutral-200 hover:bg-neutral-300 focus:bg-neutral-200 border rounded-xs border-neutral-300"
+                                [attr.disabled]="loading() || null"
+                                [attr.min]="nullInputAttr(settingDef.min)"
+                                [attr.max]="nullInputAttr(settingDef.max)"
+                                [attr.step]="nullInputAttr(settingDef.step)"
+                                [(ngModel)]="setting[0]" />
+                        } @else if (settingDef.kind === 'BOOLEAN') {
+                            <input type="checkbox" [attr.disabled]="loading() || null" [(ngModel)]="setting[0]" />
+                        }
+                    </td>
+                    <td>
+                        <div class="flex flex-row gap-1" [style.visibility]="settingChanged($index) ? 'visible' : 'hidden'">
+                            <button class="brand-error-button" (click)="resetSetting($index)" [attr.disabled]="loading() || null">
+                                <mat-icon>settings_backup_restore</mat-icon>
+                            </button>
+                            <button class="brand-primary-button" (click)="saveSetting($index)" [attr.disabled]="loading() || null">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>

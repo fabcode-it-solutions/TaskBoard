@@ -1,0 +1,35 @@
+<div class="relative w-full" #dropdownContainer>
+    <!-- Dropdown trigger -->
+    <div class="relative w-full">
+        <div (click)="toggleDropdown()" class="form-field bg-neutral-100! appearance-none cursor-pointer pr-10 py-3">
+            {{ getSelectedCount() > 0 ? getSelectedCount() + ' role(s) selected' : placeholder }}
+        </div>
+        <mat-icon class="h-5 w-5 absolute top-2.5 right-2.5 pointer-events-none">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- Dropdown menu -->
+    @if (isDropdownOpen) {
+        <div class="absolute z-10 w-full mt-1 bg-white border border-neutral-300 rounded-xs shadow-lg">
+            @for (option of options; track option) {
+                <label class="flex items-center gap-2 px-3 py-2 hover:bg-neutral-100 cursor-pointer transition-colors">
+                    <input type="checkbox" [checked]="isOptionSelected(option)" (change)="onOptionToggle(option)" class="w-4 h-4 text-brand-600 focus:ring-brand-500 rounded" />
+                    <span class="text-sm text-default-font">{{ option }}</span>
+                </label>
+            }
+        </div>
+    }
+</div>
+
+<!-- Selected options as chips -->
+@if (getSelectedOptions().length > 0) {
+    <div class="flex flex-wrap gap-2 mt-2">
+        @for (option of getSelectedOptions(); track option) {
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-400 text-white rounded-xs text-sm font-medium shadow-sm">
+                <span>{{ option }}</span>
+                <button type="button" (click)="removeOption(option)" class="hover:bg-neutral-600 rounded-full p-0.5 transition-colors ml-1 cursor-pointer flex justify-center">
+                    <mat-icon class="text-sm leading-none w-3.5 h-3.5">close</mat-icon>
+                </button>
+            </div>
+        }
+    </div>
+}

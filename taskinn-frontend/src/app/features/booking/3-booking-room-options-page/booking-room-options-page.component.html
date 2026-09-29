@@ -1,0 +1,445 @@
+<div class="min-h-screen flex justify-center p-4">
+    <div class="w-full max-w-4xl">
+        <tinn-page-header [title]="isStaff() ? 'Manual Booking - Select Rooms' : 'Available Rooms'" [subtitle]="isStaff() ? 'Select specific rooms for this booking' : 'Select the rooms that best fit your needs'" [icon]="'hotel'">
+        </tinn-page-header>
+
+        <div class="bg-neutral-100 border border-neutral-200 rounded-lg shadow-xl">
+            <!-- Room Options Header -->
+            <div class="bg-brand-primary h-14 rounded-t-lg flex items-center p-4 gap-3"></div>
+
+            <!-- Content Container -->
+            <div class="flex flex-col m-4 gap-4">
+                @if (!isStaff()) {
+                    <!-- Customer Booking UI -->
+                    <div class="w-auto flex rounded-xl">
+                        <div
+                            class="flex-1/2 text-center py-2 rounded-l-xl border-neutral-300 border-l border-t border-b"
+                            [class.bg-brand-primary]="currentSelectionSums().numRooms >= request().numRooms"
+                            [class.bg-neutral-200]="currentSelectionSums().numRooms < request().numRooms">
+                            {{ 'Rooms: ' + currentSelectionSums().numRooms + ' / ' + request().numRooms }}
+                        </div>
+                        <div
+                            class="flex-1/2 text-center py-2 rounded-r-xl border-neutral-300 border-r border-t border-b"
+                            [class.bg-brand-primary]="currentSelectionSums().capacity >= totalGuestsRequired()"
+                            [class.bg-neutral-200]="currentSelectionSums().capacity < totalGuestsRequired()">
+                            {{ 'Total Capacity: ' + currentSelectionSums().capacity + ' / ' + totalGuestsRequired() }}
+                        </div>
+                    </div>
+
+                    <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <mat-icon class="text-brand-primary">shopping_cart</mat-icon>
+                            <h3 class="text-default-font text-lg font-semibold">Your Selection</h3>
+                        </div>
+                        <div class="min-h-11">
+                            @if (selectedRoomTypes().length > 0) {
+                                <div class="space-y-2">
+                                    @for (item of getSelectedRoomsSummary(); track roomTypePriceKey(item.roomType.id, item.pricePerNight)) {
+                                        <div class="flex justify-between items-center bg-neutral-100 rounded-xs px-3 py-2 border border-neutral-300">
+                                            <div class="flex items-center gap-2">
+                                                <mat-icon class="text-brand-primary text-sm">king_bed</mat-icon>
+                                                <span class="text-default-font font-medium">{{ item.roomType.name }}</span>
+                                                <span class="text-subtext-color text-sm">({{ item.pricePerNight | number: '1.2-2' }}€ / night)</span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-subtext-color text-sm">× {{ item.quantity }}</span>
+                                                <span class="text-brand-primary font-bold">{{ item.totalPrice | number: '1.2-2' }}€</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            } @else {
+                                <div class="flex items-center h-10 text-subtext-color text-sm italic"> When you select rooms, they will appear here... </div>
+                            }
+                        </div>
+                    </div>
+                } @else {
+                    <!-- Staff Manual Booking UI -->
+                    <div class="w-auto flex rounded-xl">
+                        <div
+                            class="flex-1/2 text-center py-2 rounded-l-xl border-neutral-300 border-l border-t border-b"
+                            [class.bg-brand-primary]="manualBookingSelectionSums().numRooms >= request().numRooms"
+                            [class.bg-neutral-200]="manualBookingSelectionSums().numRooms < request().numRooms">
+                            {{ 'Rooms: ' + manualBookingSelectionSums().numRooms + ' / ' + request().numRooms }}
+                        </div>
+                        <div
+                            class="flex-1/2 text-center py-2 rounded-r-xl border-neutral-300 border-r border-t border-b"
+                            [class.bg-brand-primary]="manualBookingSelectionSums().capacity >= totalGuestsRequired()"
+                            [class.bg-neutral-200]="manualBookingSelectionSums().capacity < totalGuestsRequired()">
+                            {{ 'Total Capacity: ' + manualBookingSelectionSums().capacity + ' / ' + totalGuestsRequired() }}
+                        </div>
+                    </div>
+
+                    <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <mat-icon class="text-brand-primary">meeting_room</mat-icon>
+                            <h3 class="text-default-font text-lg font-semibold">Selected Rooms</h3>
+                        </div>
+                        <div class="min-h-11">
+                            @if (getSelectedRoomsCount() > 0) {
+                                <div class="space-y-2">
+                                    @for (room of getSelectedRoomsDetails(); track room.id) {
+                                        <div class="flex justify-between items-center bg-neutral-100 rounded-xs px-3 py-2 border border-neutral-300">
+                                            <div class="flex items-center gap-2">
+                                                <mat-icon class="text-brand-primary text-sm">king_bed</mat-icon>
+                                                <span class="text-default-font font-medium">Room {{ room.roomNumber }}</span>
+                                                <span class="text-subtext-color text-sm">- {{ room.roomType.name }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <span class="text-subtext-color text-sm">Floor {{ room.floor }}</span>
+                                                <span class="text-subtext-color text-sm">Capacity: {{ room.roomType.capacity }}</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            } @else {
+                                <div class="flex items-center h-10 text-subtext-color text-sm italic"> Select rooms from the list below... </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Search and Filter Section (Staff Only) -->
+                    @if (isStaff()) {
+                        <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <mat-icon class="text-brand-primary">filter_list</mat-icon>
+                                <h3 class="text-default-font text-lg font-semibold">Search & Filter</h3>
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                                <!-- Search Input -->
+                                <div class="flex-1">
+                                    <label class="block text-sm text-subtext-color mb-1">Search by room number or type</label>
+                                    <div class="relative">
+                                        <input
+                                            type="text"
+                                            [value]="searchText()"
+                                            (input)="searchText.set($any($event.target).value)"
+                                            placeholder="Search rooms..."
+                                            class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-primary" />
+                                        @if (searchText()) {
+                                            <button type="button" (click)="searchText.set('')" class="absolute right-2 top-1/2 -translate-y-1/2 text-subtext-color hover:text-default-font">
+                                                <mat-icon class="text-sm">close</mat-icon>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Filter Row -->
+                                <div class="flex gap-3">
+                                    <!-- Floor Filter -->
+                                    <div class="flex-1">
+                                        <label class="block text-sm text-subtext-color mb-1">Floor</label>
+                                        <select
+                                            [value]="floorFilter() ?? ''"
+                                            (change)="floorFilter.set($any($event.target).value === '' ? null : Number($any($event.target).value))"
+                                            class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-primary">
+                                            <option value="">All floors</option>
+                                            @for (floor of availableFloors(); track floor) {
+                                                <option [value]="floor">Floor {{ floor }}</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <!-- Capacity Filter -->
+                                    <div class="flex-1">
+                                        <label class="block text-sm text-subtext-color mb-1">Min Capacity</label>
+                                        <select
+                                            [value]="capacityFilter() ?? ''"
+                                            (change)="capacityFilter.set($any($event.target).value === '' ? null : Number($any($event.target).value))"
+                                            class="w-full px-3 py-2 bg-neutral-100 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-primary">
+                                            <option value="">Any capacity</option>
+                                            @for (capacity of availableCapacities(); track capacity) {
+                                                <option [value]="capacity">{{ capacity }}+ guests</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <!-- Reset Button -->
+                                    <div class="flex items-end">
+                                        <button
+                                            type="button"
+                                            (click)="resetFilters()"
+                                            [disabled]="!searchText() && floorFilter() === null && capacityFilter() === null"
+                                            class="px-4 py-2 bg-neutral-300 hover:bg-neutral-400 disabled:bg-neutral-200 disabled:cursor-not-allowed text-default-font rounded-xs transition-colors flex items-center gap-2">
+                                            <mat-icon class="text-sm">clear</mat-icon>
+                                            Reset
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Results Count -->
+                                <div class="text-sm text-subtext-color"> Showing {{ filteredRooms().length }} of {{ availableRooms().length }} rooms </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-4 mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <mat-icon class="text-brand-primary">access_time</mat-icon>
+                        <h3 class="text-default-font text-lg font-semibold">Optional Add-ons</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="flex items-center p-3 bg-neutral-100 border border-neutral-300 rounded-xs cursor-pointer hover:bg-white transition-colors">
+                            <input type="checkbox" [checked]="earlyCheckIn()" (change)="toggleEarlyCheckIn()" class="w-5 h-5 text-brand-primary border-neutral-300 rounded focus:ring-brand-primary" />
+                            <div class="ml-3">
+                                <span class="block text-default-font font-medium">Early Check-in</span>
+                                <span class="block text-subtext-color text-xs">+ 20.00€ fee/room</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center p-3 bg-neutral-100 border border-neutral-300 rounded-xs cursor-pointer hover:bg-white transition-colors">
+                            <input type="checkbox" [checked]="lateCheckOut()" (change)="toggleLateCheckOut()" class="w-5 h-5 text-brand-primary border-neutral-300 rounded focus:ring-brand-primary" />
+                            <div class="ml-3">
+                                <span class="block text-default-font font-medium">Late Check-out</span>
+                                <span class="block text-subtext-color text-xs">+ 20.00€ fee/room</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Scrollable Content Area -->
+                <div class="max-h-96 overflow-y-auto pr-1 space-y-4">
+                    <!-- Loading State -->
+                    @if (loading()) {
+                        <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm p-8">
+                            <div class="flex flex-col items-center justify-center gap-4">
+                                <mat-icon class="text-brand-primary animate-spin text-5xl">refresh</mat-icon>
+                                <div class="text-default-font text-xl">Searching for available rooms...</div>
+                                <div class="text-subtext-color text-sm">This may take a few moments</div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Error State -->
+                    @if (!loading() && ((isStaff() && availableRooms().length === 0) || (!isStaff() && roomOptions().length === 0))) {
+                        <div class="bg-red-50 border border-red-300 rounded-lg p-4">
+                            <div class="flex items-center gap-3">
+                                <mat-icon class="text-red-600!">error</mat-icon>
+                                <div>
+                                    <div class="text-red-600 font-semibold">No rooms are available that match your criteria.</div>
+                                    <div class="text-red-600 text-sm">Please try again with different dates or room types.</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!isStaff()) {
+                        <!-- Customer: Room Options List (Room Types) -->
+                        @if (!loading() && !error() && roomOptions().length > 0) {
+                            @for (room of sortedRoomOptions(); track roomOptionKey(room)) {
+                                <div class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm hover:shadow-lg transition-shadow">
+                                    <div class="p-4">
+                                        <div class="flex items-start justify-between gap-4">
+                                            <!-- Room Details -->
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <div class="h-10 w-10 bg-neutral-300 border border-neutral-400 rounded-xs flex items-center justify-center">
+                                                        <mat-icon class="text-neutral-500!">king_bed</mat-icon>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-default-font text-xl font-semibold">
+                                                            {{ room.roomType.name }}
+                                                        </div>
+                                                        <div class="text-subtext-color text-sm"> Max Occupancy: {{ room.roomType.capacity }} guests </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="text-default-font mb-3 ml-13">
+                                                    {{ room.roomType.description }}
+                                                </div>
+
+                                                <div class="flex gap-4 ml-13 text-sm">
+                                                    <div class="flex items-center gap-1">
+                                                        <mat-icon class="text-brand-primary text-sm">check_circle</mat-icon>
+                                                        <span class="text-subtext-color">{{ room.availableCount }} available</span>
+                                                    </div>
+                                                    @if (room.recommendedCount > 0) {
+                                                        <div class="flex items-center gap-1">
+                                                            <mat-icon class="text-brand-primary text-sm">recommend</mat-icon>
+                                                            <span class="text-subtext-color">{{ room.recommendedCount }} recommended</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <!-- Price and Action -->
+                                            <div class="flex flex-col items-end justify-between min-h-full">
+                                                <div class="text-right mb-4">
+                                                    <div class="text-subtext-color text-sm">Price per night</div>
+                                                    <div class="text-brand-primary text-3xl font-bold">{{ room.pricePerNight | number: '1.2-2' }}€</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end items-center gap-3">
+                                            @if (getRoomTypeQuantity(room) === 0) {
+                                                <button
+                                                    type="button"
+                                                    class="bg-brand-primary hover:bg-brand-500 text-white rounded-xs px-6 py-2.5 shadow-md transition-all hover:shadow-lg flex items-center gap-2 text-lg font-medium"
+                                                    (click)="incrementRoomTypeQuantity(room)">
+                                                    <mat-icon class="text-xl">add</mat-icon>
+                                                    Add Room
+                                                </button>
+                                            } @else {
+                                                <div class="flex items-center gap-3 bg-brand-primary/10 border-2 border-brand-primary rounded-xs px-3 py-1.5 shadow-md">
+                                                    <button
+                                                        type="button"
+                                                        class="bg-brand-primary hover:bg-brand-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-sm"
+                                                        (click)="decrementRoomTypeQuantity(room)">
+                                                        <mat-icon class="text-lg">remove</mat-icon>
+                                                    </button>
+                                                    <span class="text-brand-primary font-bold text-xl min-w-8 text-center">
+                                                        {{ getRoomTypeQuantity(room) }}
+                                                        @if (!canAddMoreRooms(room)) {
+                                                            <span class="text-xs text-subtext-color">/{{ room.availableCount }}</span>
+                                                        }
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        class="rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-sm"
+                                                        [class.bg-brand-primary]="canAddMoreRooms(room)"
+                                                        [class.hover:bg-brand-500]="canAddMoreRooms(room)"
+                                                        [class.bg-neutral-300]="!canAddMoreRooms(room)"
+                                                        [class.cursor-not-allowed]="!canAddMoreRooms(room)"
+                                                        [class.text-white]="canAddMoreRooms(room)"
+                                                        [class.text-neutral-500]="!canAddMoreRooms(room)"
+                                                        [disabled]="!canAddMoreRooms(room)"
+                                                        (click)="incrementRoomTypeQuantity(room)">
+                                                        <mat-icon class="text-lg">add</mat-icon>
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    } @else {
+                        <!-- Staff: Individual Room List -->
+                        @if (!loading() && availableRooms().length > 0) {
+                            @if (filteredRooms().length === 0) {
+                                <div class="bg-blue-50 border border-blue-300 rounded-lg p-4">
+                                    <div class="flex items-center gap-3">
+                                        <mat-icon class="text-blue-600!">info</mat-icon>
+                                        <div>
+                                            <div class="text-blue-600 font-semibold">No rooms match your filters.</div>
+                                            <div class="text-blue-600 text-sm">Try adjusting your search or filter criteria.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @for (room of filteredRooms(); track room.id) {
+                                <div
+                                    class="bg-neutral-200 rounded-xl border border-neutral-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                                    (click)="toggleRoomSelection(room.id)"
+                                    [class.bg-brand-50]="isRoomSelected(room.id)">
+                                    <div class="p-4">
+                                        <div class="flex items-center justify-between gap-4">
+                                            <!-- Checkbox -->
+                                            <div class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    [checked]="isRoomSelected(room.id)"
+                                                    (click)="$event.stopPropagation()"
+                                                    (change)="toggleRoomSelection(room.id)"
+                                                    class="w-5 h-5 text-brand-primary border-neutral-300 rounded focus:ring-brand-primary" />
+                                            </div>
+
+                                            <!-- Room Details -->
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="h-10 w-10 bg-neutral-300 border border-neutral-400 rounded-xs flex items-center justify-center">
+                                                        <mat-icon class="text-neutral-500!">king_bed</mat-icon>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-default-font text-lg font-semibold">Room {{ room.roomNumber }}</div>
+                                                        <div class="text-subtext-color text-sm"> {{ room.roomType.name }} - Floor {{ room.floor }} - Capacity: {{ room.roomType.capacity }} </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Price -->
+                                            @if (room.effectiveBasePrice) {
+                                                <div class="text-right">
+                                                    <div class="text-subtext-color text-xs">Per night</div>
+                                                    <div class="text-brand-primary text-xl font-bold">{{ room.effectiveBasePrice | number: '1.2-2' }}€</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+                <!-- End Scrollable Content Area -->
+
+                <div class="h-0.25 bg-neutral-200"></div>
+
+                <!-- Validation Message -->
+                <div class="min-h-14">
+                    @if (!canProceedToCheckout() && ((!isStaff() && selectedRoomTypes().length > 0) || (isStaff() && getSelectedRoomsCount() > 0))) {
+                        <div class="bg-amber-50 border border-amber-300 rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                                <mat-icon class="text-amber-600! text-sm">warning</mat-icon>
+                                <div class="text-amber-700 text-sm">
+                                    @if ((!isStaff() && currentSelectionSums().numRooms > totalGuestsRequired()) || (isStaff() && manualBookingSelectionSums().numRooms > totalGuestsRequired())) {
+                                        <span>Too many rooms! Cannot select more rooms than total guests ({{ totalGuestsRequired() }}).</span>
+                                    } @else if (!isStaff() && currentSelectionSums().capacity < totalGuestsRequired()) {
+                                        <span>Not enough capacity! Your selected rooms can accommodate {{ currentSelectionSums().capacity }} guests, but you need space for {{ totalGuestsRequired() }} guests.</span>
+                                    } @else if (isStaff() && manualBookingSelectionSums().capacity < totalGuestsRequired()) {
+                                        <span>Not enough capacity! Your selected rooms can accommodate {{ manualBookingSelectionSums().capacity }} guests, but you need space for {{ totalGuestsRequired() }} guests.</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!canProceedToCheckout() && ((!isStaff() && selectedRoomTypes().length === 0) || (isStaff() && getSelectedRoomsCount() === 0))) {
+                        <div class="bg-blue-50 border border-blue-300 rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                                <mat-icon class="text-blue-600! text-sm">info</mat-icon>
+                                <div class="text-blue-700 text-sm">
+                                    <span>Please select at least one room to continue.</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (canProceedToCheckout()) {
+                        <div class="bg-green-50 border border-green-300 rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                                <mat-icon class="text-green-600! text-sm">check_circle</mat-icon>
+                                <div class="text-green-700 text-sm">
+                                    <span>Great! You can now proceed to checkout.</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between items-center">
+                    <button type="button" class="brand-neutral-button" (click)="goBack()">
+                        <mat-icon>arrow_back</mat-icon>
+                        Back
+                    </button>
+                    <div class="flex gap-3">
+                        @if (isStaff()) {
+                            <button type="button" class="brand-error-button" (click)="cancelBooking()">
+                                <mat-icon>close</mat-icon>
+                                Cancel
+                            </button>
+                        }
+                        <button type="button" class="brand-primary-button disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="!canProceedToCheckout()" (click)="goForwards()">
+                            <mat-icon>arrow_forward</mat-icon>
+                            Continue
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

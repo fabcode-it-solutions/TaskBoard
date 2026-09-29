@@ -1,0 +1,122 @@
+<div class="container mx-auto px-4 py-8">
+    <tinn-page-header [title]="'Room Type Management'" [subtitle]="'Create and manage room type presets'" [icon]="'category'"> </tinn-page-header>
+
+    <!-- Search and Action Bar -->
+    <div class="bg-white rounded-xs shadow-md border border-neutral-border p-4 mb-6">
+        <div class="flex items-center gap-3 justify-between">
+            <!-- Search Bar -->
+            <div class="flex items-center gap-3 flex-1">
+                <mat-icon class="text-neutral-500">search</mat-icon>
+                <div class="flex-1 relative max-w-md">
+                    <input
+                        type="text"
+                        [value]="searchTerm()"
+                        (input)="onSearchChange($any($event.target).value)"
+                        placeholder="Search by name or description..."
+                        class="w-full px-4 py-2 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                    @if (searchTerm()) {
+                        <button (click)="clearSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer">
+                            <mat-icon class="text-[20px]">close</mat-icon>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Create Button -->
+            <button (click)="onCreateRoomType()" class="brand-primary-button">
+                <mat-icon>add</mat-icon>
+                Create Room Type
+            </button>
+        </div>
+    </div>
+
+    @if (loading() && roomTypes().length === 0) {
+        <div class="text-center py-16 text-neutral-500">Loading room types...</div>
+    }
+    @if (filteredRoomTypes().length === 0 && !loading()) {
+        <div class="bg-neutral-50 border border-neutral-200 rounded-xs p-8 text-center">
+            <mat-icon class="text-neutral-400 text-5xl mb-2">search_off</mat-icon>
+            <p class="text-neutral-600">No room types found.</p>
+        </div>
+    }
+
+    <!-- Room Types Table -->
+    @if (filteredRoomTypes().length > 0) {
+        <div class="bg-white rounded-xs shadow-md border border-neutral-border overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-neutral-200">
+                    <thead class="bg-neutral-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Capacity</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Beds</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Base Price</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-neutral-200">
+                        @for (roomType of filteredRoomTypes(); track roomType.id) {
+                            <tr class="hover:bg-neutral-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <mat-icon class="text-brand-500 mr-2">king_bed</mat-icon>
+                                        <div class="font-medium text-neutral-900">{{ roomType.name }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-neutral-600 max-w-xs truncate">
+                                        {{ roomType.description || '—' }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center text-sm text-neutral-700">
+                                        <mat-icon class="text-neutral-500 text-sm mr-1">people</mat-icon>
+                                        {{ roomType.capacity }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">
+                                    <div class="flex flex-col gap-1">
+                                        @if (roomType.singleBed) {
+                                            <div class="flex items-center">
+                                                <mat-icon class="text-neutral-500 text-sm mr-1">single_bed</mat-icon>
+                                                {{ roomType.singleBed }} Single
+                                            </div>
+                                        }
+                                        @if (roomType.doubleBed) {
+                                            <div class="flex items-center">
+                                                <mat-icon class="text-neutral-500 text-sm mr-1">bed</mat-icon>
+                                                {{ roomType.doubleBed }} Double
+                                            </div>
+                                        }
+                                        @if (!roomType.singleBed && !roomType.doubleBed) {
+                                            <span class="text-neutral-400">—</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-semibold text-brand-600">{{ formatPrice(roomType.basePrice) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button (click)="onEditRoomType(roomType)" class="inline-flex items-center px-3 py-1.5 bg-brand-primary text-white rounded-xs hover:bg-brand-600 transition-colors cursor-pointer">
+                                            <mat-icon class="text-sm mr-1">edit</mat-icon>
+                                            Edit
+                                        </button>
+                                        <button (click)="onDeleteRoomType(roomType)" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white rounded-xs hover:bg-red-700 transition-colors cursor-pointer">
+                                            <mat-icon class="text-sm mr-1">delete</mat-icon>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary Footer -->
+        <div class="mt-4 text-sm text-neutral-600 text-center"> Showing {{ filteredRoomTypes().length }} of {{ roomTypes().length }} room type{{ roomTypes().length !== 1 ? 's' : '' }} </div>
+    }
+</div>

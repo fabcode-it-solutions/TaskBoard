@@ -1,0 +1,52 @@
+<div class="container mx-auto px-4 py-8">
+    <tinn-page-header [title]="'Maintenance Board'" [subtitle]="'Manage maintenance tickets across different statuses'" [icon]="'build'"> </tinn-page-header>
+
+    @if (loading()) {
+        <div class="flex justify-center items-center h-96">
+            <div class="text-neutral-600 text-lg">Loading tickets...</div>
+        </div>
+    } @else {
+        <div class="flex gap-4 overflow-x-auto pb-4">
+            @for (column of statusColumns; track column.status) {
+                <div class="flex-1 min-w-80 max-w-md bg-neutral-100 rounded-xs border border-neutral-border flex flex-col">
+                    <div class="flex items-center gap-2 p-4 h-16 bg-white border-b-2 border-neutral-300 rounded-t-xs">
+                        <h2 class="text-lg font-semibold text-neutral-800 flex-1">{{ column.title }}</h2>
+                        @if (column.canAdd) {
+                            <button (click)="openDialog('create')" class="flex items-center justify-center w-8 h-8 bg-brand-primary text-white rounded-full cursor-pointer" aria-label="Add new ticket">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        }
+                        <span class="bg-neutral-200 px-3 py-1 w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold text-neutral-600">
+                            {{ column.tickets.length }}
+                        </span>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-4 min-h-52" cdkDropList [id]="column.status" [cdkDropListData]="column.tickets" [cdkDropListConnectedTo]="getConnectedLists()" (cdkDropListDropped)="onDrop($event, column.status)">
+                        @for (ticket of column.tickets; track ticket.id) {
+                            <div class="bg-white rounded-xs p-4 mb-3 shadow-md border border-neutral-border cursor-pointer relative" cdkDrag (click)="openDialog('view', ticket)">
+                                <div class="flex justify-between items-start gap-2 mb-2">
+                                    <span class="font-semibold text-neutral-800 flex-1">{{ ticket.title }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs px-2 py-1 rounded whitespace-nowrap uppercase" [ngClass]="getPriorityColor(ticket.priority)">
+                                            {{ ticket.priority }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p class="text-neutral-600 text-sm mb-3 line-clamp-2">{{ ticket.description }}</p>
+                                <div class="flex justify-between items-center text-sm text-neutral-500 border-t border-neutral-200 pt-2">
+                                    <span class="flex items-center gap-1">
+                                        <mat-icon class="!text-base">room</mat-icon>
+                                        Room {{ ticket.roomNumber }}
+                                    </span>
+                                    <span>{{ ticket.reporterName }}</span>
+                                </div>
+                            </div>
+                        } @empty {
+                            <div class="text-center text-neutral-400 py-8 italic">No tickets</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

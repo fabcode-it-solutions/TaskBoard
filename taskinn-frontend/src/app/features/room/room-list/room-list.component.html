@@ -1,0 +1,147 @@
+<div class="container mx-auto px-4 py-8">
+    <tinn-page-header [title]="'Room Management'" [subtitle]="'View and manage all hotel rooms'" [icon]="'meeting_room'"> </tinn-page-header>
+
+    <!-- Search and Filter Panel -->
+    <div class="bg-white rounded-xs shadow-md border border-neutral-border p-4 mb-6">
+        <!-- Search Bar -->
+        <div class="flex items-center gap-3 mb-4">
+            <mat-icon class="text-neutral-500">search</mat-icon>
+            <div class="flex-1 relative">
+                <input
+                    type="text"
+                    [value]="searchTerm()"
+                    (input)="onSearchChange($any($event.target).value)"
+                    placeholder="Search by room number..."
+                    class="w-full px-4 py-2 border border-neutral-300 rounded-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+                @if (searchTerm()) {
+                    <button (click)="clearSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600">
+                        <mat-icon class="text-[20px]">close</mat-icon>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Status Filter Buttons -->
+        <div class="flex items-center gap-2">
+            <mat-icon class="text-neutral-500 text-sm">filter_list</mat-icon>
+            <span class="text-sm text-neutral-600 mr-2">Status:</span>
+            <button
+                (click)="onStatusFilterChange('active')"
+                [class]="statusFilter() === 'active' ? 'bg-brand-primary text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'"
+                class="px-4 py-1.5 rounded-xs text-sm flex items-center gap-1 cursor-pointer">
+                <mat-icon class="text-sm">check_circle</mat-icon>
+                Active
+            </button>
+            <button
+                (click)="onStatusFilterChange('inactive')"
+                [class]="statusFilter() === 'inactive' ? 'bg-brand-primary text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'"
+                class="px-4 py-1.5 rounded-xs text-sm flex items-center gap-1 cursor-pointer">
+                <mat-icon class="text-sm">cancel</mat-icon>
+                Inactive
+            </button>
+            <button
+                (click)="onStatusFilterChange('all')"
+                [class]="statusFilter() === 'all' ? 'bg-brand-primary text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'"
+                class="px-4 py-1.5 rounded-xs text-sm flex items-center gap-1 cursor-pointer">
+                <mat-icon class="text-sm">list</mat-icon>
+                All
+            </button>
+        </div>
+    </div>
+
+    @if (loading() && !rooms()) {
+        <div class="text-center py-16 text-neutral-500">Loading rooms...</div>
+    }
+    @if (filteredRooms().length === 0 && !loading()) {
+        <div class="bg-neutral-50 border border-neutral-200 rounded-xs p-8 text-center">
+            <mat-icon class="text-neutral-400 text-5xl mb-2">search_off</mat-icon>
+            <p class="text-neutral-600">No rooms found.</p>
+        </div>
+    }
+
+    <!-- Room Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (room of paginatedRooms(); track room.id) {
+            <!-- Card is grayed out if inactive -->
+            <div class="bg-white rounded-xs shadow-md overflow-hidden border border-neutral-border" [class.opacity-50]="!room.active">
+                <div class="bg-gradient-to-r from-brand-600 to-brand-700 h-2"></div>
+                <div class="p-6">
+                    <!-- Header with Room Number and Status -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-semibold text-lg text-neutral-800">Room {{ room.roomNumber }}</h3>
+                            <span class="text-sm text-neutral-500">Floor {{ room.floor }}</span>
+                        </div>
+                        <span
+                            class="text-xs px-2 py-1 rounded font-semibold whitespace-nowrap uppercase"
+                            [ngClass]="{
+                                'bg-green-100 text-green-800': room.status === 'AVAILABLE',
+                                'bg-blue-100 text-blue-800': room.status === 'OCCUPIED',
+                                'bg-yellow-100 text-yellow-800': room.status === 'DIRTY' || room.status === 'CLEANING',
+                                'bg-red-100 text-red-800': room.status === 'OUT_OF_ORDER',
+                            }">
+                            {{ room.status | lowercase }}
+                        </span>
+                    </div>
+
+                    <!-- Room Type Details -->
+                    <div class="text-sm text-neutral-600 border-t border-b border-neutral-200 py-3 my-3">
+                        <div class="flex justify-between">
+                            <span>Type:</span>
+                            <span class="font-medium">{{ room.roomType.name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Capacity:</span>
+                            <span class="font-medium">{{ room.effectiveCapacity }} guests</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Price:</span>
+                            <span class="font-medium">{{ formatPrice(room.effectiveBasePrice) }}</span>
+                        </div>
+                        @if (room.effectiveSingleBed || room.effectiveDoubleBed) {
+                            <div class="flex justify-between">
+                                <span>Beds:</span>
+                                <span class="font-medium">
+                                    @if (room.effectiveSingleBed) {
+                                        {{ room.effectiveSingleBed }} single
+                                    }
+                                    @if (room.effectiveSingleBed && room.effectiveDoubleBed) {
+                                        ,
+                                    }
+                                    @if (room.effectiveDoubleBed) {
+                                        {{ room.effectiveDoubleBed }} double
+                                    }
+                                </span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col gap-2 pt-2">
+                        @if (room.active) {
+                            <button
+                                (click)="onEditOverrides(room)"
+                                class="w-full flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-xs transition-colors cursor-pointer">
+                                <mat-icon>tune</mat-icon>
+                                Edit Overrides
+                            </button>
+                            <button (click)="onDisableRoom(room)" class="w-full flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-error-700 bg-error-50 hover:bg-error-100 rounded-xs transition-colors cursor-pointer">
+                                <mat-icon>block</mat-icon>
+                                Disable Permanently
+                            </button>
+                        } @else {
+                            <div class="w-full text-center text-sm font-medium text-neutral-500 bg-neutral-100 py-2 rounded-xs">Inactive</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Paginator -->
+    @if (filteredRooms().length > pageSize()) {
+        <div class="sticky bottom-0 mt-8 bg-white rounded-xs shadow-md border border-neutral-border z-10">
+            <tinn-paginator [length]="filteredRooms().length" [pageSize]="pageSize()" [pageIndex]="pageIndex()" [pageSizeOptions]="pageSizeOptions" [showFirstLastButtons]="true" (pageChange)="onPageChange($event)"> </tinn-paginator>
+        </div>
+    }
+</div>
